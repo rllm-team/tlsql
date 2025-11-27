@@ -1,0 +1,21 @@
+{
+  "tml1m": {
+    "target_table": "users",
+    "relation_tables": ["ratings"],
+    "aux_tables": ["movies"], 
+    "description": "tml1m"
+  },
+  "tacm12k": {
+    "target_table": "papers",
+    "relation_tables": ["citations"],
+    "aux_tables": [],
+    "description": "TACM12K"
+  }
+
+}
+
+
+
+
+
+
