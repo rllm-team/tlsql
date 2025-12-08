@@ -1,6 +1,6 @@
 """Setup script for TLSQL package"""
 
-from setuptools import setup, find_packages
+from setuptools import setup
 
 setup(
     name="tlsql",
@@ -20,4 +20,3 @@ setup(
         ],
     },
 )
-

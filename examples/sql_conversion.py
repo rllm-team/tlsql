@@ -33,9 +33,8 @@ def test():
 
     predict_sql = """
     PREDICT VALUE(users.Age, CLF)
-FROM users
-WHERE users.Gender='F' 
-
+    FROM users
+    WHERE users.Gender='F'
     """
 
     print("TLSQL:")

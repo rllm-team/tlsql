@@ -23,9 +23,9 @@ TLSQL is a Python library that converts custom SQL-like statements into standard
 
 TLSQL uses three statements to divide your dataset into training, validation, and test sets:
 
-- **`TRAIN WITH`**: Specifies the **training set** - data used to train the model
-- **`PREDICT VALUE`**: Specifies the **test set** - data used for final evaluation (prediction targets)
-- **`VALIDATE WITH`**: Specifies the **validation set** - data used for model selection and hyperparameter tuning
+- **`TRAIN WITH`**: Specifies the training set
+- **`PREDICT VALUE`**: Specifies the test set
+- **`VALIDATE WITH`**: Specifies the validation set
 
 
 ## TLSQL Syntax
