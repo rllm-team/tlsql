@@ -14,12 +14,18 @@ import os
 import sys
 
 # Add the project root to the path so we can import tlsql
-tlsql_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
-if tlsql_dir not in sys.path:
-    sys.path.insert(0, tlsql_dir)
-parent_dir = os.path.abspath(os.path.join(tlsql_dir, '..'))
-if parent_dir not in sys.path:
-    sys.path.insert(0, parent_dir)
+# For Read the Docs: try importing first (if installed via pip)
+try:
+    import tlsql.tlsql
+except ImportError:
+    # For local development: add paths manually
+    # conf.py is in doc/source/, so go up two levels to reach tlsql/ directory
+    tlsql_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
+    if tlsql_dir not in sys.path:
+        sys.path.insert(0, tlsql_dir)
+    parent_dir = os.path.abspath(os.path.join(tlsql_dir, '..'))
+    if parent_dir not in sys.path:
+        sys.path.insert(0, parent_dir)
 
 # -- Project information -----------------------------------------------------
 
