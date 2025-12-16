@@ -14,8 +14,12 @@ import os
 import sys
 
 # Add the project root to the path so we can import tlsql
-sys.path.insert(0, os.path.abspath('../..'))
-sys.path.insert(0, os.path.abspath('../../..'))
+tlsql_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
+if tlsql_dir not in sys.path:
+    sys.path.insert(0, tlsql_dir)
+parent_dir = os.path.abspath(os.path.join(tlsql_dir, '..'))
+if parent_dir not in sys.path:
+    sys.path.insert(0, parent_dir)
 
 # -- Project information -----------------------------------------------------
 
