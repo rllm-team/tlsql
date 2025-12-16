@@ -16,7 +16,7 @@ def level_I():
     validate_sql = None
 
     print("PREDICT:")
-    print(predict_sql.strip())
+    print(f"\t{predict_sql.strip()}")
     print("\nTRAIN:None")
     print("Uses all data except PREDICT data")
     print("\nVALIDATE:None")
@@ -43,9 +43,9 @@ def level_II():
     validate_sql = None
 
     print("PREDICT:")
-    print(predict_sql.strip())
+    print(f"\t{predict_sql.strip()}")
     print("\nTRAIN:")
-    print(train_sql.strip())
+    print(f"\t{train_sql.strip()}")
     print("\nVALIDATE:None")
     print("Uses k=5 fold cross validation on train data")
     print()
@@ -74,11 +74,11 @@ def level_III():
     """
 
     print("PREDICT:")
-    print(predict_sql.strip())
+    print(f"\t{predict_sql.strip()}")
     print("\nTRAIN:")
-    print(train_sql.strip())
+    print(f"\t{train_sql.strip()}")
     print("\nVALIDATE:")
-    print(validate_sql.strip())
+    print(f"\t{validate_sql.strip()}")
     print()
 
 
