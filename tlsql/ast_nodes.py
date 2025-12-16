@@ -176,7 +176,9 @@ class WithClause(ASTNode):
 
 @dataclass
 class TablesClause(ASTNode):
-    """FROM Tables(...) clause
+    """FROM clause for multiple tables
+
+    Syntax: FROM table1, table2, ...
 
     Attributes:
         tables: Table name list
@@ -191,7 +193,7 @@ class TrainStatement(ASTNode):
 
     Complete syntax:
     TRAIN WITH (column_selectors)
-    FROM Tables(table1, table2, ...)
+    FROM table1, table2, ...
     [WHERE conditions]
 
     Attributes:
@@ -219,7 +221,7 @@ class ValidateStatement(ASTNode):
     """VALIDATE statement
 
     VALIDATE WITH (column_selectors)
-    FROM Tables(table1, table2, ...)
+    FROM table1, table2, ...
     [WHERE conditions]
 
     Attributes:

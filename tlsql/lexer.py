@@ -64,21 +64,19 @@ class Lexer:
 
     def skip_comment(self) -> None:
         """Skip SQL comments"""
-        # Single-line comment: --
         if self.current_char == '-' and self.peek() == '-':
             while self.current_char and self.current_char != '\n':
                 self.advance()
             if self.current_char == '\n':
                 self.advance()
 
-        # Multi-line comment: /* ... */
         elif self.current_char == '/' and self.peek() == '*':
-            self.advance()  # skip '/'
-            self.advance()  # skip '*'
+            self.advance()
+            self.advance()
             while self.current_char:
                 if self.current_char == '*' and self.peek() == '/':
-                    self.advance()  # skip '*'
-                    self.advance()  # skip '/'
+                    self.advance()
+                    self.advance()
                     break
                 self.advance()
 
@@ -95,11 +93,10 @@ class Lexer:
         """
         quote_char = self.current_char
         value = ''
-        self.advance()  # skip starting quote
+        self.advance()
         while self.current_char and self.current_char != quote_char:
             if self.current_char == '\\':
                 self.advance()
-                # Handle escape sequences
                 if self.current_char in (quote_char, '\\', 'n', 't'):
                     escape_map = {'n': '\n', 't': '\t'}
                     value += escape_map.get(self.current_char, self.current_char)
@@ -114,7 +111,7 @@ class Lexer:
         if self.current_char != quote_char:
             raise LexerError("Unterminated string literal", self.line, self.column)
 
-        self.advance()  # skip closing quote
+        self.advance()
         return value
 
     def read_number(self) -> str:
@@ -173,12 +170,10 @@ class Lexer:
         tokens = []
 
         while self.current_char:
-            # Whitespace characters
             if self.current_char in ' \t\r\n':
                 self.skip_whitespace()
                 continue
 
-            # Comments
             if self.current_char == '-' and self.peek() == '-':
                 self.skip_comment()
                 continue
@@ -189,26 +184,22 @@ class Lexer:
 
             line, column = self.line, self.column
 
-            # Quoted strings
             if self.current_char in ('"', "'"):
                 value = self.read_string()
                 tokens.append(Token(TokenType.STRING, value, line, column))
                 continue
 
-            # Numbers
             if self.current_char.isdigit():
                 value = self.read_number()
                 tokens.append(Token(TokenType.NUMBER, value, line, column))
                 continue
 
-            # Identifiers and keywords
             if self.current_char.isalpha() or self.current_char == '_':
                 value = self.read_identifier()
                 token_type = KEYWORDS.get(value.upper(), TokenType.IDENTIFIER)
                 tokens.append(Token(token_type, value, line, column))
                 continue
 
-            # >= operator
             if self.current_char == '>':
                 if self.peek() == '=':
                     tokens.append(Token(TokenType.GTE, '>=', line, column))
@@ -219,7 +210,6 @@ class Lexer:
                     self.advance()
                 continue
 
-            # <= and <> operators
             if self.current_char == '<':
                 if self.peek() == '=':
                     tokens.append(Token(TokenType.LTE, '<=', line, column))
@@ -234,7 +224,6 @@ class Lexer:
                     self.advance()
                 continue
 
-            # != operator
             if self.current_char == '!':
                 if self.peek() == '=':
                     tokens.append(Token(TokenType.NEQ, '!=', line, column))
@@ -248,7 +237,6 @@ class Lexer:
                     )
                 continue
 
-            # = and == operators
             if self.current_char == '=':
                 if self.peek() == '=':
                     tokens.append(Token(TokenType.EQ, '==', line, column))
@@ -259,7 +247,6 @@ class Lexer:
                     self.advance()
                 continue
 
-            # Single-character tokens
             char_tokens = {
                 '(': TokenType.LPAREN,
                 ')': TokenType.RPAREN,
@@ -275,7 +262,6 @@ class Lexer:
                 self.advance()
                 continue
 
-            # Unknown character
             raise LexerError(
                 f"Unexpected character '{self.current_char}'",
                 self.line,

@@ -86,8 +86,14 @@ class Parser:
             Matching token object
 
         Raises:
-            ParseError: Raised when token type mismatches expectation
+            ParseError: Raised when token type mismatches expectation or EOF reached
         """
+        if self.current_token is None:
+            raise ParseError(
+                f"Expected {token_type.name}, but reached end of input",
+                0,
+                0
+            )
         if self.current_token.type != token_type:
             raise ParseError(
                 f"Expected {token_type.name}, got {self.current_token.type.name}",
@@ -107,6 +113,8 @@ class Parser:
         Returns:
             True if current token matches, else False
         """
+        if self.current_token is None:
+            return False
         return self.current_token.type in token_types
 
     def parse(self) -> Statement:
@@ -120,18 +128,36 @@ class Parser:
         Returns:
             Statement AST root node
         """
+        if self.current_token is None or self.current_token.type == TokenType.EOF:
+            raise ParseError(
+                "Empty input: expected TRAIN, PREDICT or VALIDATE statement",
+                0,
+                0
+            )
+
         if self.match(TokenType.TRAIN):
-            return Statement(train=self.parse_train_statement())
+            statement = Statement(train=self.parse_train_statement())
         elif self.match(TokenType.PREDICT):
-            return Statement(predict=self.parse_predict_statement())
+            statement = Statement(predict=self.parse_predict_statement())
         elif self.match(TokenType.VALIDATE):
-            return Statement(validate=self.parse_validate_statement())
+            statement = Statement(validate=self.parse_validate_statement())
         else:
             raise ParseError(
-                f"Expected TRAIN, PREDICT or VALIDATE, got {self.current_token.type.name}",
-                self.current_token.line,
-                self.current_token.column
+                f"Expected TRAIN, PREDICT or VALIDATE, got {self.current_token.type.name if self.current_token else 'EOF'}",
+                self.current_token.line if self.current_token else 0,
+                self.current_token.column if self.current_token else 0
             )
+
+        if self.current_token and self.current_token.type != TokenType.EOF:
+            if self.current_token.type != TokenType.SEMICOLON:
+                raise ParseError(
+                    f"Unexpected token after statement: {self.current_token.type.name}",
+                    self.current_token.line,
+                    self.current_token.column
+                )
+            self.advance()
+
+        return statement
 
     def _parse_train_or_validate_statement(self, statement_type: str) -> tuple:
         """Parse TRAIN or VALIDATE statement
@@ -154,6 +180,13 @@ class Parser:
 
         if self.match(TokenType.SEMICOLON):
             self.advance()
+
+        if self.current_token and self.current_token.type != TokenType.EOF:
+            raise ParseError(
+                f"Unexpected token after {statement_type} statement: {self.current_token.type.name}",
+                self.current_token.line,
+                self.current_token.column
+            )
 
         return with_clause, tables, where
 
@@ -191,12 +224,10 @@ class Parser:
 
         selectors = []
 
-        # Parse first selector
         selectors.append(self.parse_column_selector())
 
-        # Parse subsequent selectors
         while self.match(TokenType.COMMA):
-            self.advance()  # consume comma
+            self.advance()
             selectors.append(self.parse_column_selector())
 
         self.expect(TokenType.RPAREN)
@@ -225,16 +256,14 @@ class Parser:
         return ColumnSelector(table=table_token.value, column=column)
 
     def parse_tables_clause(self) -> TablesClause:
-        """Parse FROM Tables clause
+        """Parse FROM clause for multiple tables
 
-        Syntax: FROM Tables(table1, table2, ...)
+        Syntax: FROM table1, table2, ...
 
         Returns:
             TablesClause node
         """
         self.expect(TokenType.FROM)
-        self.expect(TokenType.TABLES)
-        self.expect(TokenType.LPAREN)
 
         tables = []
 
@@ -245,8 +274,6 @@ class Parser:
             self.advance()
             table_token = self.expect(TokenType.IDENTIFIER)
             tables.append(table_token.value)
-
-        self.expect(TokenType.RPAREN)
 
         return TablesClause(tables=tables)
 
@@ -268,6 +295,13 @@ class Parser:
 
         if self.match(TokenType.SEMICOLON):
             self.advance()
+
+        if self.current_token and self.current_token.type != TokenType.EOF:
+            raise ParseError(
+                f"Unexpected token after PREDICT statement: {self.current_token.type.name}",
+                self.current_token.line,
+                self.current_token.column
+            )
 
         return PredictStatement(value=value, from_table=from_table, where=where)
 
@@ -291,9 +325,9 @@ class Parser:
             self.advance()
         else:
             raise ParseError(
-                f"Expected CLF or REG, got {self.current_token.type.name}",
-                self.current_token.line,
-                self.current_token.column
+                f"Expected CLF or REG, got {self.current_token.type.name if self.current_token else 'EOF'}",
+                self.current_token.line if self.current_token else 0,
+                self.current_token.column if self.current_token else 0
             )
 
         self.expect(TokenType.RPAREN)
@@ -392,7 +426,6 @@ class Parser:
         """
         left = self.parse_primary_expr()
 
-        # Handle BETWEEN expression
         if self.match(TokenType.BETWEEN):
             self.advance()
             lower = self.parse_primary_expr()
@@ -400,12 +433,10 @@ class Parser:
             upper = self.parse_primary_expr()
             return BetweenExpr(column=left, lower=lower, upper=upper)
 
-        # Handle IN expression
         if self.match(TokenType.IN):
             self.advance()
             self.expect(TokenType.LPAREN)
             values = []
-            # Parse value list
             if not self.match(TokenType.RPAREN):
                 while True:
                     values.append(self.parse_primary_expr())
@@ -436,7 +467,6 @@ class Parser:
             self.expect(TokenType.RPAREN)
             return expr
 
-        # Number literal
         if self.match(TokenType.NUMBER):
             token = self.current_token
             self.advance()
@@ -446,20 +476,18 @@ class Parser:
                 value = float(token.value)
             return LiteralExpr(value=value, value_type='number')
 
-        # String literal
         if self.match(TokenType.STRING):
             token = self.current_token
             self.advance()
             return LiteralExpr(value=token.value, value_type='string')
 
-        # Column reference
         if self.match(TokenType.IDENTIFIER):
             return self.parse_column_expr()
 
         raise ParseError(
-            f"Unexpected token in expression: {self.current_token.type.name}",
-            self.current_token.line,
-            self.current_token.column
+            f"Unexpected token in expression: {self.current_token.type.name if self.current_token else 'EOF'}",
+            self.current_token.line if self.current_token else 0,
+            self.current_token.column if self.current_token else 0
         )
 
     def parse_column_expr(self) -> ColumnExpr:

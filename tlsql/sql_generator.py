@@ -191,7 +191,6 @@ class SQLGenerator:
         """Generate ConversionResult for PREDICT statement"""
         filter_condition = self.generate_predict_filter(predict)
 
-        # Extract target column
         target = predict.value.target
         target_table_name = predict.from_table.table
         if target.table:
@@ -199,10 +198,8 @@ class SQLGenerator:
         else:
             target_column = f"{target_table_name}.{target.column}"
 
-        # Extract task type
         task_type = predict.value.predict_type.type_name.upper()
 
-        # Extract WHERE condition
         where_condition = None
         if predict.where:
             where_condition = self._expr_to_sql(
@@ -221,17 +218,13 @@ class SQLGenerator:
         )
 
     def generate_train_sql(self, train: TrainStatement) -> List[GeneratedSQL]:
-        """Generate SQL statements for TRAIN
-        """
-        # Group columns by table
+        """Generate SQL statements for TRAIN"""
         table_columns = self._group_columns_by_table(train.with_clause.selectors)
 
-        # Split WHERE by table
         table_conditions = {}
         if train.where:
             table_conditions = self._split_where_by_table(train.where)
 
-        # Generate SQL for each table
         result = []
         for table in train.tables.tables:
             columns = table_columns.get(table, [])
@@ -266,10 +259,8 @@ class SQLGenerator:
 
     def _split_where_by_table(self, where: WhereClause) -> Dict[str, str]:
         """Split WHERE conditions per table"""
-        # Extract conditions
         conditions = self._extract_and_conditions(where.condition)
 
-        # Group by table
         table_conditions = {}
         for cond in conditions:
             table = self._extract_table_from_expr(cond)
@@ -279,7 +270,6 @@ class SQLGenerator:
                     table_conditions[table] = []
                 table_conditions[table].append(cond_str)
 
-        # Combine conditions per table
         result = {}
         for table, conds in table_conditions.items():
             result[table] = ' AND '.join(conds)
@@ -300,11 +290,9 @@ class SQLGenerator:
         if isinstance(expr, ColumnExpr):
             return expr.column.table
         elif isinstance(expr, BinaryExpr):
-            # Search left first
             left_table = self._extract_table_from_expr(expr.left)
             if left_table:
                 return left_table
-            # Then search right
             return self._extract_table_from_expr(expr.right)
         elif isinstance(expr, UnaryExpr):
             return self._extract_table_from_expr(expr.operand)
@@ -347,23 +335,19 @@ class SQLGenerator:
     def _expr_to_sql(self, expr: Expr, include_table_prefix: bool = True) -> str:
         """Convert expression tree to SQL string"""
         if isinstance(expr, LiteralExpr):
-            # Literal
             if expr.value_type == 'string':
                 return f"'{expr.value}'"
             return str(expr.value)
 
         elif isinstance(expr, ColumnExpr):
-            # Column reference
             if include_table_prefix and expr.column.table:
                 return f"{expr.column.table}.{expr.column.column}"
             return expr.column.column
 
         elif isinstance(expr, BinaryExpr):
-            # Binary expression
             left = self._expr_to_sql(expr.left, include_table_prefix)
             right = self._expr_to_sql(expr.right, include_table_prefix)
 
-            # Normalize operator
             op = expr.operator.upper()
             if op == 'EQUALS' or op == '=':
                 op = '='
@@ -378,19 +362,16 @@ class SQLGenerator:
             return f"{left} {op} {right}"
 
         elif isinstance(expr, UnaryExpr):
-            # Unary expression
             operand = self._expr_to_sql(expr.operand, include_table_prefix)
             return f"{expr.operator.upper()} {operand}"
 
         elif isinstance(expr, BetweenExpr):
-            # BETWEEN expression
             column = self._expr_to_sql(expr.column, include_table_prefix)
             lower = self._expr_to_sql(expr.lower, include_table_prefix)
             upper = self._expr_to_sql(expr.upper, include_table_prefix)
             return f"{column} BETWEEN {lower} AND {upper}"
 
         elif isinstance(expr, InExpr):
-            # IN expression
             column = self._expr_to_sql(expr.column, include_table_prefix)
             values = [self._expr_to_sql(val, include_table_prefix) for val in expr.values]
             values_str = ', '.join(values)
