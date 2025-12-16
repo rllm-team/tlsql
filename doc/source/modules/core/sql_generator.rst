@@ -8,6 +8,11 @@ The SQL generator converts AST nodes into standard SQL statements.
    :no-inherited-members:
    :show-inheritance:
 
+.. autoclass:: tlsql.tlsql.sql_generator.ConversionResult
+   :no-members:
+   :no-inherited-members:
+   :show-inheritance:
+
 .. autoclass:: tlsql.tlsql.sql_generator.GeneratedSQL
    :no-members:
    :no-inherited-members:

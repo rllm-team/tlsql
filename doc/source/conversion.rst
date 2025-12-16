@@ -12,7 +12,7 @@ Example: PREDICT VALUE Statement
 
     PREDICT VALUE(users.Age, CLF)
     FROM users
-    WHERE users.Gender = 'M' AND users.Occupation IN (1,2,4)
+    WHERE users.Gender = 'F'
 
 Conversion Process
 ------------------
@@ -42,7 +42,8 @@ The conversion process consists of four main steps:
    - ``users`` (identifier)
    - ``.`` (dot)
    - ``Gender`` (identifier)
-   - ``...`` (more tokens)
+   - ``=`` (equals)
+   - ``'F'`` (string literal)
 
 2. **Syntax Analysis (Parsing)**
    
@@ -62,16 +63,9 @@ The conversion process consists of four main steps:
          from_table=FromClause(table='users'),
          where=WhereClause(
            condition=BinaryExpr(
-             op='AND',
-             left=BinaryExpr(
-               op='=',
-               left=ColumnExpr(column=ColumnReference(table='users', column='Gender')),
-               right=LiteralExpr(value='M')
-             ),
-             right=InExpr(
-               column=ColumnReference(table='users', column='Occupation'),
-               values=[LiteralExpr(value=1), LiteralExpr(value=2), LiteralExpr(value=4)]
-             )
+             op='=',
+             left=ColumnExpr(column=ColumnReference(table='users', column='Gender')),
+             right=LiteralExpr(value='F')
            )
          )
        )
@@ -87,7 +81,7 @@ The conversion process consists of four main steps:
    - Target Table: ``users``
    - Target Column: ``users.Age``
    - Task Type: ``CLF`` (Classification)
-   - WHERE Condition: ``Gender = 'M' AND Occupation IN (1,2,4)``
+   - WHERE Condition: ``Gender = 'F'``
 
 4. **Result Assembly**
    
@@ -99,7 +93,7 @@ The conversion process consists of four main steps:
 
 .. code-block:: sql
 
-    SELECT * FROM users WHERE Gender = 'M' AND Occupation IN (1,2,4)
+    SELECT * FROM users WHERE Gender = 'F'
 
 **Conversion Result:**
 
@@ -109,6 +103,6 @@ The conversion returns a ``ConversionResult`` object containing:
 - ``target_column``: ``'users.Age'``
 - ``task_type``: ``'CLF'``
 - ``target_table``: ``'users'``
-- ``where_condition``: ``"Gender = 'M' AND Occupation IN (1,2,4)"``
-- ``filter_condition``: ``FilterCondition(table='users', condition="Gender = 'M' AND Occupation IN (1,2,4)")``
+- ``where_condition``: ``"Gender = 'F'"``
+- ``filter_condition``: ``FilterCondition(table='users', condition="Gender = 'F'")``
 

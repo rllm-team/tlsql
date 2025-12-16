@@ -10,6 +10,8 @@
 
 [![Python](https://img.shields.io/badge/Python-3.8+-3776ab?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
 [![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)](LICENSE)
+[![Documentation](https://img.shields.io/badge/Documentation-latest-blue?style=flat-square)](https://tlsql.readthedocs.io/en/latest/index.html)
+
 
 ---
 
@@ -38,7 +40,7 @@ The `TRAIN WITH` statement specifies which columns and tables to use for trainin
 
 ```sql
 TRAIN WITH (column_selectors)
-FROM Tables(table1, table2, ...)
+FROM table1, table2, ...
 [WHERE conditions]
 ```
 
@@ -46,7 +48,7 @@ FROM Tables(table1, table2, ...)
 
 ```sql
 TRAIN WITH (users.*, movies.*, ratings.*)
-FROM Tables(users, movies, ratings)
+FROM users, movies, ratings
 WHERE users.Gender='M' AND movies.Year >= 2000
 ```
 
@@ -83,7 +85,7 @@ The `VALIDATE WITH` statement specifies validation data with the same syntax as 
 
 ```sql
 VALIDATE WITH (column_selectors)
-FROM Tables(table1, table2, ...)
+FROM table1, table2, ...
 [WHERE conditions]
 ```
 
@@ -91,7 +93,7 @@ FROM Tables(table1, table2, ...)
 
 ```sql
 VALIDATE WITH (users.*, movies.*, ratings.*)
-FROM Tables(users, movies, ratings)
+FROM users, movies, ratings
 WHERE users.Gender='M' AND movies.Year < 2000
 ```
 
@@ -106,4 +108,42 @@ WHERE users.Gender='M' AND movies.Year < 2000
 ### Special Operators
 - `IN (value1, value2, ...)`: Check if value is in list
 - `BETWEEN value1 AND value2`: Range check
+
+## How to Try
+
+### Installation
+
+Install TLSQL from the `tlsql` root directory:
+
+```bash
+cd tlsql
+pip install -e .
+```
+
+This will install TLSQL in development mode, allowing you to make changes to the code without reinstalling.
+
+### Quick Start
+
+```python
+import tlsql
+
+
+result = tlsql.convert("PREDICT VALUE(users.Age, CLF) FROM users")
+print(result.statement_type)  # 'PREDICT'
+print(result.target_column)   # 'users.Age'
+print(result.task_type)       # 'CLF'
+```
+
+### Examples
+
+Check out the examples directory for more usage examples:
+
+- **`examples/sql_conversion.py`**: Basic TLSQL to SQL conversion examples
+- **`examples/bridge_demo.py`**: BRIDGE model training with TLSQL
+- **`examples/statements_level.py`**: three-level logic
+
+
+
+
+
 

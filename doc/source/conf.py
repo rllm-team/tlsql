@@ -81,7 +81,7 @@ templates_path = ['_templates']
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
-exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
+exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', 'conversion.rst']
 
 # Mock imports for modules that may not be available during documentation build
 autodoc_mock_imports = []
@@ -98,7 +98,7 @@ intersphinx_mapping = {
 # The theme to use for HTML and HTML Help pages.
 html_theme = 'furo'
 html_theme_options = {
-    "sidebar_hide_name": True,
+    "sidebar_hide_name": False,  # Show project name in sidebar (acts as home link)
     "navigation_with_keys": True,
     "light_css_variables": {
         "color-brand-primary": "#3498db",
@@ -107,6 +107,9 @@ html_theme_options = {
         "color-background-secondary": "#f2f2f2",
     },
 }
+
+# Set the HTML title (shown in browser tab and as home link)
+html_title = "TLSQL Documentation"
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
