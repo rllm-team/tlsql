@@ -4,7 +4,7 @@
 
 
 def level_I():
-    """Demonstrate Level I: PREDICT Statement Logic"""
+    """Level I: PREDICT - REQUIRED"""
     print("Level I: Only PREDICT")
     predict_sql = """
     PREDICT VALUE(users.Age, CLF)
@@ -25,7 +25,7 @@ def level_I():
 
 
 def level_II():
-    """Demonstrate Level II: TRAIN Statement Logic"""
+    """Level II: TRAIN - OPTIONAL, defaults to all data except PREDICT"""
     print("Level II: PREDICT and TRAIN")
 
     predict_sql = """
@@ -37,7 +37,7 @@ def level_II():
     train_sql = """
     TRAIN WITH (users.*, movies.title, ratings.*)
     FROM users, movies, ratings
-    WHERE users.Age > 25 AND movies.Year > 2000 AND ratings.Rating >= 4
+    WHERE users.Gender='M' and users.userID BETWEEN 1 AND 3000
     """
 
     validate_sql = None
@@ -52,7 +52,7 @@ def level_II():
 
 
 def level_III():
-    """Demonstrate Level III: VALIDATE Statement Logic"""
+    """Level III: VALIDATE - OPTIONAL, defaults to k=5 fold cross validation"""
     print("Level III: PREDICT, TRAIN and VALIDATE")
 
     predict_sql = """
@@ -64,13 +64,13 @@ def level_III():
     train_sql = """
     TRAIN WITH (users.*, movies.title, ratings.*)
     FROM users, movies, ratings
-    WHERE users.Age > 25 AND movies.Year > 2000 AND ratings.Rating >= 4
+    WHERE users.Gender='M' and users.userID BETWEEN 1 AND 3000
     """
 
     validate_sql = """
     VALIDATE WITH (users.*, movies.*)
     FROM users, movies
-    WHERE users.Age BETWEEN 30 AND 50
+    WHERE users.Gender='M' and users.userID>3000
     """
 
     print("PREDICT:")
@@ -83,15 +83,9 @@ def level_III():
 
 
 def main():
-    """Main function demonstrating three-level logic"""
     level_I()
     level_II()
     level_III()
-
-    print("Summary:")
-    print("PREDICT - REQUIRED")
-    print("TRAIN - OPTIONAL, defaults to all data except PREDICT")
-    print("VALIDATE - OPTIONAL, defaults to k=5 fold cross validation")
 
 
 if __name__ == "__main__":

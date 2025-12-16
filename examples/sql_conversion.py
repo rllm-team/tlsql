@@ -13,7 +13,7 @@ def train():
     train_sql = """
     TRAIN WITH (users.*, movies.title, ratings.*)
     FROM users, movies, ratings
-    WHERE users.Gender='M' and users.userID<3000
+    WHERE users.Gender='M' and users.userID BETWEEN 1 AND 3000
     """
 
     print("TLSQL:")
@@ -56,9 +56,9 @@ def validate():
     print("\nVALIDATE Statement")
 
     validate_sql = """
-    VALIDATE WITH (users.Age)
-    FROM users
-    WHERE users.Gender='M' and users.userID > 3000
+    VALIDATE WITH (users.*, movies.*)
+    FROM users, movies
+    WHERE users.Gender='M' and users.userID>3000
     """
 
     print("TLSQL:")
