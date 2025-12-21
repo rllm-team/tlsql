@@ -1,0 +1,196 @@
+/* Custom CSS for inline attribute descriptions */
+/* Force attributes to display on same line with colon */
+
+/* Very specific selectors for attribute lists */
+dl.py.attribute dt,
+dl.py.attribute > dt,
+dl[class*="attribute"] dt,
+dl[class*="attribute"] > dt,
+.class dl.py.attribute dt,
+.class dl[class*="attribute"] dt {
+    display: inline !important;
+    font-weight: bold !important;
+    float: none !important;
+    clear: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: auto !important;
+}
+
+/* Handle nested sig-name spans */
+dl.py.attribute dt .sig-name.descname,
+dl.py.attribute dt .sig-name.descname .pre {
+    font-weight: bold !important;
+}
+
+/* Add colon after attribute name */
+dl.py.attribute dt::after,
+dl.py.attribute > dt::after,
+dl[class*="attribute"] dt::after,
+dl[class*="attribute"] > dt::after,
+.class dl.py.attribute dt::after,
+.class dl[class*="attribute"] dt::after {
+    content: ": " !important;
+    font-weight: normal !important;
+}
+
+/* Make description inline */
+dl.py.attribute dd,
+dl.py.attribute > dd,
+dl[class*="attribute"] dd,
+dl[class*="attribute"] > dd,
+.class dl.py.attribute dd,
+.class dl[class*="attribute"] dd {
+    display: inline !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    float: none !important;
+    clear: none !important;
+    width: auto !important;
+}
+
+/* Handle paragraphs inside dd */
+dl.py.attribute dd p,
+dl.py.attribute > dd p,
+dl[class*="attribute"] dd p,
+dl[class*="attribute"] > dd p,
+.class dl.py.attribute dd p,
+.class dl[class*="attribute"] dd p {
+    display: inline !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* Add line break after each attribute (but keep them in the same box) */
+dl.py.attribute dd::after,
+dl.py.attribute > dd::after,
+dl[class*="attribute"] dd::after,
+dl[class*="attribute"] > dd::after,
+.class dl.py.attribute dd::after,
+.class dl[class*="attribute"] dd::after {
+    content: "" !important;
+    display: block !important;
+    margin-bottom: 0.25em !important;
+    height: 0 !important;
+    clear: both !important;
+}
+
+/* Ensure dl is block - but don't add box here if JavaScript will wrap them */
+dl.py.attribute,
+dl[class*="attribute"] {
+    display: block !important;
+}
+
+/* Style for the wrapper container created by JavaScript */
+.attributes-container {
+    margin-top: 1em !important;
+    margin-bottom: 1em !important;
+    padding-top: 0.75em !important;
+    padding-bottom: 0.75em !important;
+    padding-left: 0.75em !important;
+    padding-right: 0.75em !important;
+    background-color: #f8f9fa !important;
+    border-left: 3px solid #0066cc !important;
+    border-radius: 4px !important;
+}
+
+/* If JavaScript doesn't run, still style individual dl elements */
+dl.py.attribute:not(.attributes-container dl),
+dl[class*="attribute"]:not(.attributes-container dl) {
+    margin-top: 1em !important;
+    margin-bottom: 1em !important;
+    padding-top: 0.75em !important;
+    padding-bottom: 0.75em !important;
+    padding-left: 0.75em !important;
+    padding-right: 0.75em !important;
+    background-color: #f8f9fa !important;
+    border-left: 3px solid #0066cc !important;
+    border-radius: 4px !important;
+}
+
+/* Ensure all dt/dd pairs are inside the same box - no individual backgrounds */
+dl.py.attribute dt,
+dl.py.attribute dd,
+dl[class*="attribute"] dt,
+dl[class*="attribute"] dd {
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+/* Attributes inside container should not have individual boxes */
+.attributes-container dl.py.attribute,
+.attributes-container dl[class*="attribute"],
+dl.py.attribute.in-container,
+dl[class*="attribute"].in-container {
+    margin-top: 0 !important;
+    margin-bottom: 0.25em !important;
+    padding: 0 !important;
+    background-color: transparent !important;
+    border: none !important;
+    border-radius: 0 !important;
+}
+
+.attributes-container dl.py.attribute::before,
+.attributes-container dl[class*="attribute"]::before,
+dl.py.attribute.in-container::before,
+dl[class*="attribute"].in-container::before {
+    content: none !important;
+}
+
+/* Prevent nested containers */
+.attributes-container .attributes-container {
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+    padding: 0 !important;
+    background-color: transparent !important;
+    border: none !important;
+    border-radius: 0 !important;
+}
+
+.attributes-container .attributes-container .attributes-title {
+    display: none !important;
+}
+
+/* Add a subtle title before attributes - but only if not in wrapper */
+dl.py.attribute:not(.attributes-container dl)::before,
+dl[class*="attribute"]:not(.attributes-container dl)::before {
+    content: "Attributes" !important;
+    display: block !important;
+    font-weight: 600 !important;
+    font-size: 0.9em !important;
+    color: #0066cc !important;
+    margin-bottom: 0.5em !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+    dl.py.attribute,
+    dl[class*="attribute"] {
+        background-color: #242424 !important;
+        border-left-color: #4da6ff !important;
+    }
+    
+    dl.py.attribute::before,
+    dl[class*="attribute"]::before {
+        color: #4da6ff !important;
+    }
+}
+
+/* Override any Furo theme styles */
+.furo dl.py.attribute dt,
+.furo dl.py.attribute dd,
+.furo dl[class*="attribute"] dt,
+.furo dl[class*="attribute"] dd {
+    display: inline !important;
+}
+
+/* Target all possible parent containers */
+article dl.py.attribute dt,
+article dl.py.attribute dd,
+section dl.py.attribute dt,
+section dl.py.attribute dd {
+    display: inline !important;
+}

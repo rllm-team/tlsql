@@ -1,7 +1,12 @@
 AST Nodes
 =========
 
-AST node definitions for representing parsed TLSQL statements.
+AST (Abstract Syntax Tree) nodes represent parsed TLSQL statements. The AST is organized hierarchically:
+
+- **Statements**: Top-level constructs (TRAIN, PREDICT, VALIDATE)
+- **Clauses**: Statement components (WITH, FROM, WHERE, VALUE)
+- **Expressions**: Conditional and logical expressions
+- **References**: Column and table references
 
 Base Classes
 ------------
@@ -117,4 +122,3 @@ Clause Classes
    :no-members:
    :no-inherited-members:
    :show-inheritance:
-

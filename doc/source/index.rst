@@ -1,16 +1,17 @@
 TLSQL Documentation
 ===================
 
-TLSQL is a Python library that converts custom SQL-like statements into standard SQL queries for machine learning workflows. It provides a declarative syntax for specifying training, validation, and test datasets in machine learning pipelines.
+TLSQL converts custom SQL-like statements into standard SQL queries for machine learning workflows.
+It provides a declarative syntax for specifying training, validation, and test datasets.
 
 Overview
 --------
 
-TLSQL uses three types of statements to divide your dataset:
+TLSQL uses three types of statements:
 
-- **PREDICT VALUE**: Specifies the test set, target column and task type (REQUIRED)
-- **TRAIN WITH**: Specifies the training set (OPTIONAL - defaults to all data except PREDICT data)
-- **VALIDATE WITH**: Specifies the validation set (OPTIONAL - defaults to k=5 fold cross validation)
+- **PREDICT VALUE**: Test set, target column and task type (REQUIRED)
+- **TRAIN WITH**: Training set (OPTIONAL - defaults to all data except PREDICT data)
+- **VALIDATE WITH**: Validation set (OPTIONAL - defaults to k=5 fold cross validation)
 
 Quick Start
 -----------
@@ -27,7 +28,9 @@ Quick Start
 Components
 ----------
 
-TLSQL consists of the following main components:
+**API:**
+
+- :py:func:`tlsql.convert` - Main conversion function
 
 **Core Components:**
 
@@ -37,10 +40,6 @@ TLSQL consists of the following main components:
 - :doc:`modules/core/ast_nodes` - AST node definitions
 - :doc:`modules/core/tokens` - Token type definitions
 - :doc:`modules/core/exceptions` - Exception classes for error handling
-
-**API:**
-
-- :py:func:`tlsql.convert` - Main conversion function
 
 Contents
 --------

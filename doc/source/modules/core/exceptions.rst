@@ -1,7 +1,21 @@
 Exceptions
-==========
+===========
 
-Exception classes for error handling.
+TLSQL uses a hierarchy of custom exceptions for error handling. All exceptions inherit from
+:class:`TLSQLError` and include line/column information when available.
+
+Exception Hierarchy
+-------------------
+
+.. code-block:: text
+
+    TLSQLError (base class)
+    ├── LexerError (lexical analysis errors)
+    ├── ParseError (parsing errors)
+    └── GenerationError (SQL generation errors)
+
+API Reference
+-------------
 
 .. autoclass:: tlsql.tlsql.exceptions.TLSQLError
    :no-members:
@@ -22,4 +36,3 @@ Exception classes for error handling.
    :no-members:
    :no-inherited-members:
    :show-inheritance:
-

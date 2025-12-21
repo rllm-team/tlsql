@@ -1,9 +1,7 @@
 Core Module
 ===========
 
-The core module contains all essential components for parsing and converting TLSQL statements.
-
-The following sections document each component in detail. Click on any component to view its full documentation.
+Essential components for parsing and converting TLSQL statements.
 
 Components
 ----------
@@ -18,4 +16,3 @@ Components
    core/ast_nodes
    core/tokens
    core/exceptions
-

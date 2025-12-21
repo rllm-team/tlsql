@@ -65,7 +65,7 @@ napoleon_use_param = True
 napoleon_use_rtype = True
 napoleon_preprocess_types = False
 napoleon_type_aliases = None
-napoleon_attr_annotations = True
+napoleon_attr_annotations = False  # Don't show attribute type annotations
 
 # Autodoc settings
 autodoc_default_options = {
@@ -74,9 +74,14 @@ autodoc_default_options = {
     'special-members': False,  # Don't show special members
     'undoc-members': False,
     'exclude-members': '__weakref__',
-    'show-inheritance': False,  # Don't show inheritance in sidebar
+    'show-inheritance': True,  # Show inheritance in class documentation
     'imported-members': False,  # Don't document imported members to avoid duplicates
+    'noindex': False,  # Include in index
 }
+
+# Hide type hints in documentation
+autodoc_typehints = 'none'  # Don't show type hints in documentation
+autodoc_typehints_description_target = 'documented'
 
 # Autosummary settings
 autosummary_generate = False  # Disable autosummary to reduce clutter in sidebar
@@ -111,10 +116,25 @@ html_theme_options = {
     "sidebar_hide_name": False,  # Show project name in sidebar (acts as home link)
     "navigation_with_keys": True,
     "light_css_variables": {
-        "color-brand-primary": "#3498db",
-        "color-brand-content": "#2c3e50",
+        "color-brand-primary": "#0066cc",
+        "color-brand-content": "#1a1a1a",
         "color-background-primary": "#ffffff",
-        "color-background-secondary": "#f2f2f2",
+        "color-background-secondary": "#f8f9fa",
+        "color-sidebar-background": "#f8f9fa",
+        "color-sidebar-background-border": "#e0e0e0",
+        "color-sidebar-caption-text": "#666666",
+        "color-sidebar-link-text": "#1a1a1a",
+        "color-sidebar-link-text--top-level": "#0066cc",
+        "font-stack": "system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
+        "font-stack--monospace": "'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace",
+    },
+    "dark_css_variables": {
+        "color-brand-primary": "#4da6ff",
+        "color-brand-content": "#e0e0e0",
+        "color-background-primary": "#1a1a1a",
+        "color-background-secondary": "#242424",
+        "color-sidebar-background": "#1e1e1e",
+        "color-sidebar-background-border": "#333333",
     },
 }
 
@@ -125,6 +145,12 @@ html_title = "TLSQL Documentation"
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
+html_css_files = ['custom.css']
+html_js_files = ['custom.js']
 
 # Use default furo sidebar (no custom templates needed)
 # html_sidebars = {}  # Use default sidebar configuration
+
+def setup(app):
+    """Setup function for Sphinx."""
+    app.add_js_file('custom.js')
