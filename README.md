@@ -140,7 +140,7 @@ Check out the examples directory for more usage examples:
 
 - **`examples/sql_conversion.py`**: Basic TLSQL to SQL conversion examples
 - **`examples/bridge_demo.py`**: BRIDGE model training with TLSQL
-- **`examples/statements_level.py`**: three-level logic
+- **`examples/tl_workflow.py`**: TLSQL workflow with three-level logic
 
 
 

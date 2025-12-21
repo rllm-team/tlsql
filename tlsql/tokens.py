@@ -1,4 +1,4 @@
-"""Token definitions for TLSQL lexer
+"""Token definitions for TLSQL lexer.
 """
 
 from dataclasses import dataclass
@@ -89,13 +89,13 @@ KEYWORDS = {
 
 @dataclass
 class Token:
-    """Represents a single token in the input
+    """Represents a single token in the input.
 
     Attributes:
-        type: Token type
-        value: String value of token
-        line: Line number where token is located
-        column: Column number where token is located
+        type: Token type.
+        value: String value of token.
+        line: Line number where token is located.
+        column: Column number where token is located.
     """
 
     type: TokenType
@@ -104,5 +104,5 @@ class Token:
     column: int
 
     def __repr__(self) -> str:
-        """Return string representation of token"""
+        """Return string representation of token."""
         return f"Token({self.type.name}, '{self.value}', {self.line}:{self.column})"

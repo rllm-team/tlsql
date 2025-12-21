@@ -1,4 +1,4 @@
-"""TLSQL: A SQL conversion library for custom SQL statements
+"""TLSQL: A SQL-like language designed for relational table learning tasks and workflows.
 
 This package converts three types of custom SQL statements into standard SQL:
 1. TRAIN WITH - Training data queries
@@ -16,6 +16,8 @@ Usage:
         >>> from tlsql import Parser, SQLGenerator
         >>> parser = Parser("PREDICT VALUE(users.Age, CLF) FROM users")
         >>> ast = parser.parse()
+        >>> generator = SQLGenerator()
+        >>> result = generator.generate_with_metadata(ast)
 """
 
 __version__ = "0.1.0"
@@ -23,20 +25,23 @@ __author__ = "TLSQL Team"
 
 
 def convert(tlsql: str):
-    """Convert TLSQL statement to standard SQL
+    """Convert TLSQL statement to standard SQL.
 
     This is the main entry point for TLSQL conversion.
 
     Args:
-        tlsql: TLSQL statement string
+        tlsql: TLSQL statement string.
 
     Returns:
-        ConversionResult: Unified result containing statement type and all metadata
+        ConversionResult: Unified result containing statement type and all metadata.
 
     """
     from tlsql.tlsql.sql_generator import SQLGenerator
     return SQLGenerator.convert(tlsql)
 
+
+# Tokens
+from tlsql.tlsql.tokens import Token, TokenType
 
 # Core classes (re-exported for convenience)
 from tlsql.tlsql.lexer import Lexer
@@ -48,8 +53,9 @@ from tlsql.tlsql.sql_generator import (
     ConversionResult,
 )
 
-# AST nodes (commonly used)
+# AST nodes (all AST components)
 from tlsql.tlsql.ast_nodes import (
+    ASTNode,
     Statement,
     TrainStatement,
     ValidateStatement,
@@ -57,6 +63,9 @@ from tlsql.tlsql.ast_nodes import (
     ValueClause,
     FromClause,
     WhereClause,
+    ColumnSelector,
+    WithClause,
+    TablesClause,
     BinaryExpr,
     UnaryExpr,
     ColumnExpr,
@@ -78,6 +87,9 @@ from tlsql.tlsql.exceptions import (
 __all__ = [
     # Top-level API
     "convert",
+    # Tokens
+    "Token",
+    "TokenType",
     # Core classes
     "Lexer",
     "Parser",
@@ -86,6 +98,7 @@ __all__ = [
     "FilterCondition",
     "ConversionResult",
     # AST nodes
+    "ASTNode",
     "Statement",
     "TrainStatement",
     "ValidateStatement",
@@ -93,6 +106,9 @@ __all__ = [
     "ValueClause",
     "FromClause",
     "WhereClause",
+    "ColumnSelector",
+    "WithClause",
+    "TablesClause",
     "BinaryExpr",
     "UnaryExpr",
     "ColumnExpr",

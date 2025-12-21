@@ -1,8 +1,9 @@
-"""Parser for TLSQL syntax
+"""Parser for TLSQL syntax.
+
 Supports three statement types:
-1. TRAIN WITH - training
-2. PREDICT VALUE - prediction
-3. VALIDATE WITH - validation
+1. TRAIN WITH - training.
+2. PREDICT VALUE - prediction.
+3. VALIDATE WITH - validation.
 """
 
 from typing import Optional
@@ -33,21 +34,21 @@ from .exceptions import ParseError
 
 
 class Parser:
-    """Parser for TLSQL syntax
+    """Parser for TLSQL syntax.
 
     Uses a recursive descent parser that supports TRAIN, PREDICT, and VALIDATE statements.
 
     Attributes:
-        tokens: Token list
-        pos: Current token index
-        current_token: Token currently being processed
+        tokens: Token list.
+        pos: Current token index.
+        current_token: Token currently being processed.
     """
 
     def __init__(self, text: str):
-        """Initialize parser
+        """Initialize parser.
 
         Args:
-            text: Input text to parse
+            text: Input text to parse.
         """
         lexer = Lexer(text)
         self.tokens = lexer.tokenize()
@@ -55,7 +56,7 @@ class Parser:
         self.current_token = self.tokens[0] if self.tokens else None
 
     def advance(self) -> None:
-        """Advance to next token
+        """Advance to next token.
 
         Moves to the next token in the stream.
         """
@@ -63,30 +64,30 @@ class Parser:
         self.current_token = self.tokens[self.pos] if self.pos < len(self.tokens) else None
 
     def peek(self, offset: int = 1) -> Optional[Token]:
-        """Look ahead without consuming token
+        """Look ahead without consuming token.
 
         Args:
-            offset: Offset for lookahead
+            offset: Offset for lookahead.
 
         Returns:
-            Token at the specified position or None if out-of-range
+            Token at the specified position or None if out-of-range.
         """
         peek_pos = self.pos + offset
         return self.tokens[peek_pos] if peek_pos < len(self.tokens) else None
 
     def expect(self, token_type: TokenType) -> Token:
-        """Expect and consume a token type
+        """Expect and consume a token type.
 
-        Consumes and returns the token if it matches
+        Consumes and returns the token if it matches.
 
         Args:
-            token_type: Expected token type
+            token_type: Expected token type.
 
         Returns:
-            Matching token object
+            Matching token object.
 
         Raises:
-            ParseError: Raised when token type mismatches expectation or EOF reached
+            ParseError: Raised when token type mismatches expectation or EOF reached.
         """
         if self.current_token is None:
             raise ParseError(
@@ -105,28 +106,28 @@ class Parser:
         return token
 
     def match(self, *token_types: TokenType) -> bool:
-        """Check whether current token matches any given types
+        """Check whether current token matches any given types.
 
         Args:
-            *token_types: Token types to match
+            *token_types: Token types to match.
 
         Returns:
-            True if current token matches, else False
+            True if current token matches, else False.
         """
         if self.current_token is None:
             return False
         return self.current_token.type in token_types
 
     def parse(self) -> Statement:
-        """Parse a complete TLSQL statement
+        """Parse a complete TLSQL statement.
 
         Determines statement type based on first keyword:
-        - TRAIN WITH: training statement
-        - PREDICT VALUE: prediction statement
-        - VALIDATE WITH: validation statement
+        - TRAIN WITH: training statement.
+        - PREDICT VALUE: prediction statement.
+        - VALIDATE WITH: validation statement.
 
         Returns:
-            Statement AST root node
+            Statement AST root node.
         """
         if self.current_token is None or self.current_token.type == TokenType.EOF:
             raise ParseError(
@@ -160,15 +161,15 @@ class Parser:
         return statement
 
     def _parse_train_or_validate_statement(self, statement_type: str) -> tuple:
-        """Parse TRAIN or VALIDATE statement
+        """Parse TRAIN or VALIDATE statement.
 
         Both statements share the same structure with WITH clause.
 
         Args:
-            statement_type: 'TRAIN' or 'VALIDATE'
+            statement_type: 'TRAIN' or 'VALIDATE'.
 
         Returns:
-            Tuple (with_clause, tables, where)
+            Tuple (with_clause, tables, where).
         """
         with_clause = self.parse_with_clause()
 
@@ -191,33 +192,33 @@ class Parser:
         return with_clause, tables, where
 
     def parse_train_statement(self) -> TrainStatement:
-        """Parse TRAIN statement
+        """Parse TRAIN statement.
 
         Returns:
-            TrainStatement node
+            TrainStatement node.
         """
         self.expect(TokenType.TRAIN)
         with_clause, tables, where = self._parse_train_or_validate_statement('TRAIN')
         return TrainStatement(with_clause=with_clause, tables=tables, where=where)
 
     def parse_validate_statement(self) -> ValidateStatement:
-        """Parse VALIDATE statement
+        """Parse VALIDATE statement.
 
         Returns:
-            ValidateStatement node
+            ValidateStatement node.
         """
         self.expect(TokenType.VALIDATE)
         with_clause, tables, where = self._parse_train_or_validate_statement('VALIDATE')
         return ValidateStatement(with_clause=with_clause, tables=tables, where=where)
 
     def parse_with_clause(self) -> WithClause:
-        """Parse WITH clause
+        """Parse WITH clause.
 
-        Syntax: WITH (selector1, selector2, ...)
-        Selector format: table.column or table.*
+        Syntax: WITH (selector1, selector2, ...).
+        Selector format: table.column or table.*.
 
         Returns:
-            WithClause node
+            WithClause node.
         """
         self.expect(TokenType.WITH)
         self.expect(TokenType.LPAREN)
@@ -235,12 +236,12 @@ class Parser:
         return WithClause(selectors=selectors)
 
     def parse_column_selector(self) -> ColumnSelector:
-        """Parse column selector
+        """Parse column selector.
 
-        Format: table.column or table.*
+        Format: table.column or table.*.
 
         Returns:
-            ColumnSelector node
+            ColumnSelector node.
         """
         table_token = self.expect(TokenType.IDENTIFIER)
 
@@ -256,12 +257,12 @@ class Parser:
         return ColumnSelector(table=table_token.value, column=column)
 
     def parse_tables_clause(self) -> TablesClause:
-        """Parse FROM clause for multiple tables
+        """Parse FROM clause for multiple tables.
 
         Syntax: FROM table1, table2, ...
 
         Returns:
-            TablesClause node
+            TablesClause node.
         """
         self.expect(TokenType.FROM)
 
@@ -278,10 +279,10 @@ class Parser:
         return TablesClause(tables=tables)
 
     def parse_predict_statement(self) -> PredictStatement:
-        """Parse PREDICT statement
+        """Parse PREDICT statement.
 
         Returns:
-            PredictStatement node
+            PredictStatement node.
         """
         self.expect(TokenType.PREDICT)
 
@@ -306,10 +307,10 @@ class Parser:
         return PredictStatement(value=value, from_table=from_table, where=where)
 
     def parse_value_clause(self) -> ValueClause:
-        """Parse VALUE clause
+        """Parse VALUE clause.
 
         Returns:
-            ValueClause node
+            ValueClause node.
         """
         self.expect(TokenType.VALUE)
         self.expect(TokenType.LPAREN)
@@ -335,22 +336,22 @@ class Parser:
         return ValueClause(target=target, predict_type=predict_type)
 
     def parse_from_clause(self) -> FromClause:
-        """Parse FROM clause (single table)
+        """Parse FROM clause (single table).
 
         Returns:
-            FromClause node
+            FromClause node.
         """
         self.expect(TokenType.FROM)
         table_token = self.expect(TokenType.IDENTIFIER)
         return FromClause(table=table_token.value)
 
     def parse_column_reference(self) -> ColumnReference:
-        """Parse column reference
+        """Parse column reference.
 
-        Format: column_name or table.column_name
+        Format: column_name or table.column_name.
 
         Returns:
-            ColumnReference node
+            ColumnReference node.
         """
         first_token = self.expect(TokenType.IDENTIFIER)
 
@@ -362,27 +363,27 @@ class Parser:
             return ColumnReference(column=first_token.value)
 
     def parse_where_clause(self) -> WhereClause:
-        """Parse WHERE clause
+        """Parse WHERE clause.
 
         Returns:
-            WhereClause node
+            WhereClause node.
         """
         self.expect(TokenType.WHERE)
         condition_expr = self.parse_where_expression()
         return WhereClause(condition=condition_expr)
 
     def parse_where_expression(self) -> Expr:
-        """Parse WHERE expression (entry point)
+        """Parse WHERE expression (entry point).
 
         Returns:
-            Root of expression tree
+            Root of expression tree.
         """
         return self.parse_or_expr()
 
     def parse_or_expr(self) -> Expr:
-        """Parse OR expression
+        """Parse OR expression.
 
-        Grammar: or_expr = and_expr (OR and_expr)*
+        Grammar: or_expr = and_expr (OR and_expr)*.
         """
         left = self.parse_and_expr()  # A OR B AND C parsed as A OR (B AND C)
 
@@ -394,9 +395,9 @@ class Parser:
         return left
 
     def parse_and_expr(self) -> Expr:
-        """Parse AND expression
+        """Parse AND expression.
 
-        Grammar: and_expr = not_expr (AND not_expr)*
+        Grammar: and_expr = not_expr (AND not_expr)*.
         """
         left = self.parse_not_expr()
 
@@ -408,9 +409,9 @@ class Parser:
         return left
 
     def parse_not_expr(self) -> Expr:
-        """Parse NOT expression
+        """Parse NOT expression.
 
-        Grammar: not_expr = NOT not_expr | comparison
+        Grammar: not_expr = NOT not_expr | comparison.
         """
         if self.match(TokenType.NOT):
             self.advance()
@@ -420,9 +421,9 @@ class Parser:
         return self.parse_comparison_expr()
 
     def parse_comparison_expr(self) -> Expr:
-        """Parse comparison expression
+        """Parse comparison expression.
 
-        Grammar: comparison = primary (comp_op primary | BETWEEN primary AND primary | IN (primary, ...) )
+        Grammar: comparison = primary (comp_op primary | BETWEEN primary AND primary | IN (primary, ...) ).
         """
         left = self.parse_primary_expr()
 
@@ -457,9 +458,9 @@ class Parser:
         return left
 
     def parse_primary_expr(self) -> Expr:
-        """Parse primary expression
+        """Parse primary expression.
 
-        Grammar: primary = literal | column_ref | (expression)
+        Grammar: primary = literal | column_ref | (expression).
         """
         if self.match(TokenType.LPAREN):
             self.advance()
@@ -491,10 +492,10 @@ class Parser:
         )
 
     def parse_column_expr(self) -> ColumnExpr:
-        """Parse column expression
+        """Parse column expression.
 
         Returns:
-            ColumnExpr node
+            ColumnExpr node.
         """
         col_ref = self.parse_column_reference()
         return ColumnExpr(column=col_ref)

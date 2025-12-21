@@ -1,4 +1,4 @@
-"""SQL Generator
+"""SQL Generator.
 
 Converts TLSQL AST into standard SQL statements or filtering conditions.
 
@@ -27,12 +27,12 @@ from .parser import Parser
 
 @dataclass
 class GeneratedSQL:
-    """Generated SQL statement
+    """Generated SQL statement.
 
     Attributes:
-        table: Table name
-        sql: SQL string
-        columns: Selected column list
+        table: Table name.
+        sql: SQL string.
+        columns: Selected column list.
     """
     table: str
     sql: str
@@ -41,11 +41,11 @@ class GeneratedSQL:
 
 @dataclass
 class FilterCondition:
-    """Filter condition for PREDICT statements
+    """Filter condition for PREDICT statements.
 
     Attributes:
-        table: Table name
-        condition: SQL expression, e.g. user.loc = 'Beijing'
+        table: Table name.
+        condition: SQL expression, e.g. user.loc = 'Beijing'.
     """
     table: str
     condition: str
@@ -53,17 +53,17 @@ class FilterCondition:
 
 @dataclass
 class ConversionResult:
-    """Result from TLSQL conversion
+    """Result from TLSQL conversion.
 
     Attributes:
-        statement_type: Type of statement
-        sql_list: List of GeneratedSQL objects per table
-        filter_condition: FilterCondition object
-        target_column: Target column reference
-        task_type: Task type
-        target_table:Target table name
-        tables: List of all tables involved in the statement
-        where_condition: WHERE condition as SQL string
+        statement_type: Type of statement.
+        sql_list: List of GeneratedSQL objects per table.
+        filter_condition: FilterCondition object.
+        target_column: Target column reference.
+        task_type: Task type.
+        target_table: Target table name.
+        tables: List of all tables involved in the statement.
+        where_condition: WHERE condition as SQL string.
     """
     statement_type: str
     sql_list: Optional[List[GeneratedSQL]] = None
@@ -88,20 +88,20 @@ class ConversionResult:
 
 
 class SQLGenerator:
-    """SQL generator for TLSQL statements"""
+    """SQL generator for TLSQL statements."""
 
     def __init__(self):
         pass
 
     @classmethod
     def convert(cls, tlsql: str) -> ConversionResult:
-        """Convert TLSQL statement to standard SQL
+        """Convert TLSQL statement to standard SQL.
 
         Args:
-            tlsql: TLSQL statement string
+            tlsql: TLSQL statement string.
 
         Returns:
-            ConversionResult: Unified result
+            ConversionResult: Unified result.
         """
         parser = Parser(tlsql)
         ast = parser.parse()
@@ -109,38 +109,38 @@ class SQLGenerator:
         return generator.generate_with_metadata(ast)
 
     def generate(self, statement: Statement):
-        """Generate SQL statements or filters
+        """Generate SQL statements or filters.
 
         Args:
-            statement: Parsed Statement node
+            statement: Parsed Statement node.
 
         Returns:
-            TRAIN/VALIDATE: List[GeneratedSQL] per table
-            PREDICT: FilterCondition object
+            TRAIN/VALIDATE/PREDICT: List[GeneratedSQL] per table.
+            (For backward compatibility, PREDICT can also return FilterCondition via generate_predict_filter).
 
         Raises:
-            GenerationError: Unknown statement type
+            GenerationError: Unknown statement type.
         """
         if statement.train:
             return self.generate_train_sql(statement.train)
         elif statement.validate:
             return self.generate_validate_sql(statement.validate)
         elif statement.predict:
-            return self.generate_predict_filter(statement.predict)
+            return self.generate_predict_sql(statement.predict)
         else:
             raise GenerationError("Unknown statement type")
 
     def generate_with_metadata(self, statement: Statement) -> ConversionResult:
-        """Generate SQL with full metadata
+        """Generate SQL with full metadata.
 
         Args:
-            statement: Parsed Statement node
+            statement: Parsed Statement node.
 
         Returns:
-            ConversionResult: Unified result with all metadata
+            ConversionResult: Unified result with all metadata.
 
         Raises:
-            GenerationError: Unknown statement type
+            GenerationError: Unknown statement type.
         """
         if statement.train:
             return self._generate_train_result(statement.train)
@@ -152,7 +152,7 @@ class SQLGenerator:
             raise GenerationError("Unknown statement type")
 
     def _generate_train_result(self, train: TrainStatement) -> ConversionResult:
-        """Generate ConversionResult for TRAIN statement"""
+        """Generate ConversionResult for TRAIN statement."""
         sql_list = self.generate_train_sql(train)
         tables = train.tables.tables
         where_condition = None
@@ -170,7 +170,7 @@ class SQLGenerator:
         )
 
     def _generate_validate_result(self, validate: ValidateStatement) -> ConversionResult:
-        """Generate ConversionResult for VALIDATE statement"""
+        """Generate ConversionResult for VALIDATE statement."""
         sql_list = self.generate_validate_sql(validate)
         tables = validate.tables.tables
         where_condition = None
@@ -188,7 +188,19 @@ class SQLGenerator:
         )
 
     def _generate_predict_result(self, predict: PredictStatement) -> ConversionResult:
-        """Generate ConversionResult for PREDICT statement"""
+        """Generate ConversionResult for PREDICT statement.
+        
+        Returns a ConversionResult with sql_list containing the generated SQL
+        for test data loading, consistent with TRAIN and VALIDATE statements.
+        """
+        # Generate SQL list for PREDICT statement (for test data execution)
+        sql_list = self.generate_predict_sql(predict)
+        
+        # Ensure sql_list is not empty
+        if not sql_list:
+            raise GenerationError("PREDICT statement failed to generate SQL list")
+        
+        # Also generate filter_condition for backward compatibility
         filter_condition = self.generate_predict_filter(predict)
 
         target = predict.value.target
@@ -209,6 +221,7 @@ class SQLGenerator:
 
         return ConversionResult(
             statement_type='PREDICT',
+            sql_list=sql_list,  # Contains GeneratedSQL objects for direct execution
             filter_condition=filter_condition,
             target_column=target_column,
             task_type=task_type,
@@ -218,7 +231,7 @@ class SQLGenerator:
         )
 
     def generate_train_sql(self, train: TrainStatement) -> List[GeneratedSQL]:
-        """Generate SQL statements for TRAIN"""
+        """Generate SQL statements for TRAIN."""
         table_columns = self._group_columns_by_table(train.with_clause.selectors)
 
         table_conditions = {}
@@ -240,7 +253,7 @@ class SQLGenerator:
         return result
 
     def generate_validate_sql(self, validate: ValidateStatement) -> List[GeneratedSQL]:
-        """Generate SQL for VALIDATE"""
+        """Generate SQL for VALIDATE."""
         train_stmt = TrainStatement(
             with_clause=validate.with_clause,
             tables=validate.tables,
@@ -249,7 +262,7 @@ class SQLGenerator:
         return self.generate_train_sql(train_stmt)
 
     def _group_columns_by_table(self, selectors: List[ColumnSelector]) -> Dict[str, List[str]]:
-        """Group column selectors by table"""
+        """Group column selectors by table."""
         table_columns = {}
         for selector in selectors:
             if selector.table not in table_columns:
@@ -258,7 +271,7 @@ class SQLGenerator:
         return table_columns
 
     def _split_where_by_table(self, where: WhereClause) -> Dict[str, str]:
-        """Split WHERE conditions per table"""
+        """Split WHERE conditions per table."""
         conditions = self._extract_and_conditions(where.condition)
 
         table_conditions = {}
@@ -277,7 +290,7 @@ class SQLGenerator:
         return result
 
     def _extract_and_conditions(self, expr: Expr) -> List[Expr]:
-        """Recursively extract AND-connected subconditions"""
+        """Recursively extract AND-connected subconditions."""
         if isinstance(expr, BinaryExpr) and expr.operator.upper() == 'AND':
             left_conds = self._extract_and_conditions(expr.left)
             right_conds = self._extract_and_conditions(expr.right)
@@ -286,7 +299,7 @@ class SQLGenerator:
             return [expr]
 
     def _extract_table_from_expr(self, expr: Expr) -> Optional[str]:
-        """Extract table name from expression"""
+        """Extract table name from expression."""
         if isinstance(expr, ColumnExpr):
             return expr.column.table
         elif isinstance(expr, BinaryExpr):
@@ -303,7 +316,7 @@ class SQLGenerator:
         return None
 
     def _build_select_sql(self, table: str, columns: List[str], condition: Optional[str]) -> str:
-        """Build SELECT statement"""
+        """Build SELECT statement."""
         if not columns or '*' in columns:
             select_clause = '*'
         else:
@@ -315,8 +328,44 @@ class SQLGenerator:
 
         return sql
 
+    def generate_predict_sql(self, predict: PredictStatement) -> List[GeneratedSQL]:
+        """Generate SQL statements for PREDICT statement.
+        
+        Generates a complete SQL statement for loading test data, consistent with
+        TRAIN and VALIDATE statements. The returned sql_list can be directly used
+        for database execution.
+        
+        Args:
+            predict: Parsed PREDICT statement.
+            
+        Returns:
+            List[GeneratedSQL]: A list containing a single GeneratedSQL object
+            with the complete SELECT statement for test data loading.
+            Format: SELECT * FROM table [WHERE condition].
+            
+        Example:
+            PREDICT VALUE users.Age AS CLF FROM users WHERE users.Gender='F'
+            Returns: [GeneratedSQL(table='users', sql='SELECT * FROM users WHERE Gender = \'F\'', columns=['*'])].
+        """
+        table = predict.from_table.table
+        
+        where_condition = None
+        if predict.where:
+            where_condition = self._expr_to_sql(
+                predict.where.condition,
+                include_table_prefix=False
+            )
+        
+        sql = self._build_select_sql(table, ['*'], where_condition)
+        
+        return [GeneratedSQL(
+            table=table,
+            sql=sql,
+            columns=['*']
+        )]
+
     def generate_predict_filter(self, predict: PredictStatement) -> FilterCondition:
-        """Convert PREDICT WHERE clause to filter"""
+        """Convert PREDICT WHERE clause to filter."""
         table = predict.from_table.table
 
         if not predict.where:
@@ -333,7 +382,7 @@ class SQLGenerator:
         )
 
     def _expr_to_sql(self, expr: Expr, include_table_prefix: bool = True) -> str:
-        """Convert expression tree to SQL string"""
+        """Convert expression tree to SQL string."""
         if isinstance(expr, LiteralExpr):
             if expr.value_type == 'string':
                 return f"'{expr.value}'"

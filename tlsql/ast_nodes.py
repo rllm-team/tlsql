@@ -1,8 +1,9 @@
-"""Abstract Syntax Tree node definitions
+"""Abstract Syntax Tree node definitions.
+
 Supports 3 statement types:
-1. TRAIN WITH
-2. PREDICT VALUE
-3. VALIDATE WITH
+1. TRAIN WITH.
+2. PREDICT VALUE.
+3. VALIDATE WITH.
 """
 
 from dataclasses import dataclass, field
@@ -11,27 +12,25 @@ from typing import Optional, List, Any
 
 @dataclass
 class ASTNode:
-    """Base class for all AST nodes
-
-    All AST nodes inherit from this class, used for type identification and unified interface
+    """Base class for all AST nodes.All AST nodes inherit from this class, used for type identification and unified interface.
     """
     pass
 
 
 @dataclass
 class ColumnReference(ASTNode):
-    """Column reference, format is 'table.column' or 'column'
+    """Column reference, format is 'table.column' or 'column'.
 
     Attributes:
-        table: Table name
-        column: Column name
+        table: Table name.
+        column: Column name.
     """
 
     table: Optional[str] = None
     column: str = ""
 
     def __str__(self) -> str:
-        """Return string representation of column reference"""
+        """Return string representation of column reference."""
         if self.table:
             return f"{self.table}.{self.column}"
         return self.column
@@ -39,18 +38,18 @@ class ColumnReference(ASTNode):
 
 @dataclass
 class Expr(ASTNode):
-    """Base class for all expressions
+    """Base class for all expressions.
     """
     pass
 
 
 @dataclass
 class LiteralExpr(Expr):
-    """Literal value
+    """Literal value.
 
     Attributes:
-        value: Value of literal
-        value_type: Type of value, 'number' and 'string'
+        value: Value of literal.
+        value_type: Type of value, 'number' and 'string'.
     """
 
     value: Any
@@ -59,10 +58,10 @@ class LiteralExpr(Expr):
 
 @dataclass
 class ColumnExpr(Expr):
-    """Column reference in expression
+    """Column reference in expression.
 
     Attributes:
-        column: Column reference object
+        column: Column reference object.
     """
 
     column: ColumnReference
@@ -70,16 +69,16 @@ class ColumnExpr(Expr):
 
 @dataclass
 class BinaryExpr(Expr):
-    """Binary expression
+    """Binary expression.
 
-    Supported operators
-    - Comparison operators: >, <, >=, <=, ==, !=, =
-    - Logical operators: AND, OR
+    Supported operators:
+    - Comparison operators: >, <, >=, <=, ==, !=, =.
+    - Logical operators: AND, OR.
 
     Attributes:
-        left: Left operand expression
-        operator: Operator
-        right: Right operand expression
+        left: Left operand expression.
+        operator: Operator.
+        right: Right operand expression.
     """
 
     left: Expr
@@ -89,11 +88,11 @@ class BinaryExpr(Expr):
 
 @dataclass
 class UnaryExpr(Expr):
-    """Unary expression
+    """Unary expression.
 
     Attributes:
-        operator: Operator
-        operand: Operand expression
+        operator: Operator.
+        operand: Operand expression.
     """
 
     operator: str
@@ -102,14 +101,14 @@ class UnaryExpr(Expr):
 
 @dataclass
 class BetweenExpr(Expr):
-    """BETWEEN expression
+    """BETWEEN expression.
 
-    Syntax: column BETWEEN value1 AND value2
+    Syntax: column BETWEEN value1 AND value2.
 
     Attributes:
-        column: Column reference expression
-        lower: Lower bound value expression
-        upper: Upper bound value expression
+        column: Column reference expression.
+        lower: Lower bound value expression.
+        upper: Upper bound value expression.
     """
 
     column: Expr
@@ -119,13 +118,13 @@ class BetweenExpr(Expr):
 
 @dataclass
 class InExpr(Expr):
-    """IN expression
+    """IN expression.
 
-    Syntax: column IN (value1, value2, ...)
+    Syntax: column IN (value1, value2, ...).
 
     Attributes:
-        column: Column reference expression
-        values: Value list
+        column: Column reference expression.
+        values: Value list.
     """
     column: Expr
     values: List[Expr]
@@ -133,10 +132,10 @@ class InExpr(Expr):
 
 @dataclass
 class WhereClause(ASTNode):
-    """WHERE clause
+    """WHERE clause.
 
     Attributes:
-        condition: Condition expression tree
+        condition: Condition expression tree.
     """
 
     condition: Expr
@@ -144,11 +143,11 @@ class WhereClause(ASTNode):
 
 @dataclass
 class ColumnSelector(ASTNode):
-    """Column selector in USING clause
+    """Column selector in USING clause.
 
     Attributes:
-        table: Table name
-        column: Column name, '*' means all columns
+        table: Table name.
+        column: Column name, '*' means all columns.
     """
 
     table: str
@@ -159,16 +158,16 @@ class ColumnSelector(ASTNode):
 
     @property
     def is_wildcard(self) -> bool:
-        """Determine if it's a wildcard selector (table.*)"""
+        """Determine if it's a wildcard selector (table.*)."""
         return self.column == '*'
 
 
 @dataclass
 class WithClause(ASTNode):
-    """WITH clause in TRAIN/VALIDATE statement
+    """WITH clause in TRAIN/VALIDATE statement.
 
     Attributes:
-        selectors: Column selector list
+        selectors: Column selector list.
     """
 
     selectors: List[ColumnSelector] = field(default_factory=list)
@@ -176,12 +175,12 @@ class WithClause(ASTNode):
 
 @dataclass
 class TablesClause(ASTNode):
-    """FROM clause for multiple tables
+    """FROM clause for multiple tables.
 
     Syntax: FROM table1, table2, ...
 
     Attributes:
-        tables: Table name list
+        tables: Table name list.
     """
 
     tables: List[str] = field(default_factory=list)
@@ -189,7 +188,7 @@ class TablesClause(ASTNode):
 
 @dataclass
 class TrainStatement(ASTNode):
-    """TRAIN statement
+    """TRAIN statement.
 
     Complete syntax:
     TRAIN WITH (column_selectors)
@@ -197,9 +196,9 @@ class TrainStatement(ASTNode):
     [WHERE conditions]
 
     Attributes:
-        with_clause: WITH clause
-        tables: Tables clause
-        where: WHERE clause
+        with_clause: WITH clause.
+        tables: Tables clause.
+        where: WHERE clause.
     """
 
     with_clause: WithClause
@@ -218,16 +217,16 @@ class TrainStatement(ASTNode):
 
 @dataclass
 class ValidateStatement(ASTNode):
-    """VALIDATE statement
+    """VALIDATE statement.
 
     VALIDATE WITH (column_selectors)
     FROM table1, table2, ...
     [WHERE conditions]
 
     Attributes:
-        with_clause: WITH clause
-        tables: Tables clause
-        where: WHERE clause
+        with_clause: WITH clause.
+        tables: Tables clause.
+        where: WHERE clause.
     """
 
     with_clause: WithClause
@@ -246,10 +245,10 @@ class ValidateStatement(ASTNode):
 
 @dataclass
 class PredictType(ASTNode):
-    """Prediction type, CLF/REG
+    """Prediction type, CLF/REG.
 
     Attributes:
-        type_name: Prediction type
+        type_name: Prediction type.
     """
 
     type_name: str
@@ -265,11 +264,11 @@ class PredictType(ASTNode):
 
 @dataclass
 class ValueClause(ASTNode):
-    """VALUE clause in PREDICT statement
+    """VALUE clause in PREDICT statement.
 
     Attributes:
-        target: Prediction target column
-        predict_type: Prediction type
+        target: Prediction target column.
+        predict_type: Prediction type.
     """
 
     target: ColumnReference
@@ -278,10 +277,10 @@ class ValueClause(ASTNode):
 
 @dataclass
 class FromClause(ASTNode):
-    """FROM clause
+    """FROM clause.
 
     Attributes:
-        table: Table name
+        table: Table name.
     """
 
     table: str
@@ -289,16 +288,16 @@ class FromClause(ASTNode):
 
 @dataclass
 class PredictStatement(ASTNode):
-    """PREDICT statement
+    """PREDICT statement.
 
     PREDICT VALUE(target_column, predict_type)
     FROM table
     [WHERE conditions]
 
     Attributes:
-        value: VALUE clause
-        from_table: FROM clause
-        where: WHERE clause
+        value: VALUE clause.
+        from_table: FROM clause.
+        where: WHERE clause.
     """
 
     value: ValueClause
@@ -318,12 +317,12 @@ class PredictStatement(ASTNode):
 
 @dataclass
 class Statement(ASTNode):
-    """Contains TRAIN/PREDICT/validate statements
+    """Contains TRAIN/PREDICT/validate statements.
 
     Attributes:
-        train: TRAIN statement
-        predict: PREDICT statement
-        validate: VALIDATE statement
+        train: TRAIN statement.
+        predict: PREDICT statement.
+        validate: VALIDATE statement.
     """
 
     train: Optional[TrainStatement] = None
@@ -332,7 +331,7 @@ class Statement(ASTNode):
 
     @property
     def statement_type(self) -> str:
-        """Return statement type"""
+        """Return statement type."""
         if self.train:
             return "TRAIN"
         elif self.predict:
