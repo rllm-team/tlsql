@@ -10,19 +10,19 @@ def train():
     """Demonstrate TRAIN statement conversion"""
     print("TRAIN Statement")
 
-    train_sql = """
+    train_tlsql = """
     TRAIN WITH (users.*, movies.*, ratings.*)
     FROM users, movies, ratings
     WHERE users.Gender='M' and users.userID BETWEEN 1 AND 3000
     """
 
     print("TLSQL:")
-    print(f"\t{train_sql.strip()}")
+    print(f"    {train_tlsql.strip()}")
 
-    result = tlsql.convert(train_sql)
-    print(f"Type: {result.statement_type}")
+    train_sqls = tlsql.convert(train_tlsql)
+    print(f"Type: {train_sqls.statement_type}")
     print("Generated Standard SQL:")
-    for i, gen_sql in enumerate(result.sql_list, 1):
+    for i, gen_sql in enumerate(train_sqls.sql_list, 1):
         print(f"{i}. Table: {gen_sql.table}")
         print(f"   SQL: {gen_sql.sql}")
 
@@ -31,50 +31,51 @@ def test():
     """Demonstrate PREDICT statement conversion"""
     print("\nPREDICT Statement")
 
-    predict_sql = """
+    predict_tlsql = """
     PREDICT VALUE(users.Age, CLF)
     FROM users
     WHERE users.Gender='F'
     """
 
     print("TLSQL:")
-    print(f"\t{predict_sql.strip()}")
+    print(f"    {predict_tlsql.strip()}")
 
-    result = tlsql.convert(predict_sql)
+    predict_sqls = tlsql.convert(predict_tlsql)
 
-    print(f"Target Column: {result.target_column}")
-    print(f"Task Type: {result.task_type}")
-    print(f"Target Table: {result.target_table}")
-    print(f"WHERE Condition: {result.where_condition}")
-    print(f"SQL Condition: {result.filter_condition.condition}")
+    print(f"Target Column: {predict_sqls.target_column}")
+    print(f"Task Type: {predict_sqls.task_type}")
+    print(f"Target Table: {predict_sqls.target_table}")
+    print(f"WHERE Condition: {predict_sqls.where_condition}")
+    print(f"SQL Condition: {predict_sqls.filter_condition.condition}")
     print("\nGenerated Standard SQL:")
-    print(f"SELECT * FROM {result.filter_condition.table} WHERE {result.filter_condition.condition}")
+    print(f"SELECT * FROM {predict_sqls.filter_condition.table} WHERE {predict_sqls.filter_condition.condition}")
 
 
 def validate():
     """Demonstrate VALIDATE statement conversion"""
     print("\nVALIDATE Statement")
 
-    validate_sql = """
+    validate_tlsql = """
     VALIDATE WITH (users.*)
     FROM users
     WHERE users.Gender='M' and users.userID>3000
     """
 
     print("TLSQL:")
-    print(f"\t{validate_sql.strip()}")
+    print(f"    {validate_tlsql.strip()}")
 
-    result = tlsql.convert(validate_sql)
+    validate_sqls = tlsql.convert(validate_tlsql)
 
-    print(f"Type: {result.statement_type}")
+    print(f"Type: {validate_sqls.statement_type}")
 
     print("\nGenerated Standard SQL:")
-    for i, gen_sql in enumerate(result.sql_list, 1):
+    for i, gen_sql in enumerate(validate_sqls.sql_list, 1):
         print(f"{i}. Table: {gen_sql.table}")
         print(f"   SQL: {gen_sql.sql}")
 
 
 if __name__ == "__main__":
+    print("This work is conducted on the TML1M dataset from SJTUTables, a dataset of users, movies, and ratings.")
     train()
     test()
     validate()

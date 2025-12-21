@@ -5,7 +5,7 @@ from typing import Dict, Any, Optional
 import torch
 import pandas as pd
 
-from tlsql.examples.bridge.graph_builder import build_homo_graph
+from tlsql.examples.bridge.model import build_homo_graph
 from rllm.transforms.graph_transforms import GCNTransform
 from rllm.transforms.table_transforms import TabTransformerTransform
 from rllm.data import TableData
@@ -104,6 +104,8 @@ def prepare_bridge_data(
     relation_df = relation_df[relation_df['UserID'].notna() & relation_df['MovieID'].notna()]
 
     emb_size = 128
+    
+    #For simplicity, we use random embeddings here, but we recommend using models such as BERT for preprocessing.
     movie_embeddings = torch.randn(n_movies, emb_size).to(device)
 
     graph = build_homo_graph(
