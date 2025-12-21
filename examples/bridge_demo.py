@@ -37,7 +37,7 @@ def test_bridge(model, target_table, non_table_embeddings, adj, y, masks):
     return accs
 
 
-def train_bridge_model(model, target_table, non_table_embeddings, adj, epochs=10, lr=0.001, wd=1e-4):
+def train_bridge_model(model, target_table, non_table_embeddings, adj, epochs=10, lr=0.005, wd=1e-4):
     """Train BRIDGE model
 
     Args:
@@ -100,8 +100,8 @@ def main():
         'host': 'localhost',
         'port': 3306,
         'database': 'tml1m',
-        'username': 'root',
-        'password': 'cfy1007'
+        'username': 'your username',
+        'password': 'your password'
     }
     train_tlsql = """
     TRAIN WITH (users.*, movies.*, ratings.*)
@@ -148,10 +148,7 @@ def main():
     
     # MLP
     print("\nRunning MLP Baseline...")
-    mlp_val_acc, mlp_test_acc = run_mlp_baseline(
-        target_table, non_table_embeddings,
-        device=device
-    )
+    mlp_val_acc, mlp_test_acc = run_mlp_baseline(target_table, device=device)
     
     # BRIDGE Model
     print("\nRunning BRIDGE Model...")

@@ -47,18 +47,17 @@ def prepare_bridge_data(
     target_df = target_df.set_index(target_pkey)
 
     col_types = {}
+    total_rows = len(target_df)
     for col in target_df.columns:
         if col == target_pkey:
             continue
+        
         if col == col_name and task_type.upper() == 'CLF':
             col_types[col] = ColType.CATEGORICAL
         elif target_df[col].dtype in ['int64', 'float64']:
             unique_count = target_df[col].nunique()
-            total_rows = len(target_df)
-            if unique_count <= 20 or (unique_count < total_rows * 0.1 and unique_count <= 100):
-                col_types[col] = ColType.CATEGORICAL
-            else:
-                col_types[col] = ColType.NUMERICAL
+            is_categorical = unique_count <= 20 or (unique_count < total_rows * 0.1 and unique_count <= 100)
+            col_types[col] = ColType.CATEGORICAL if is_categorical else ColType.NUMERICAL
         else:
             col_types[col] = ColType.CATEGORICAL
 
