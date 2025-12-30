@@ -63,7 +63,7 @@ def train_bridge_model(model, target_table, non_table_embeddings, adj, epochs=10
     metric = "Acc"
     best_val_acc = test_acc = 0
     times = []
-    
+
     for epoch in range(1, epochs + 1):
         start = time.time()
         train_loss = train_bridge(model, optimizer, target_table, non_table_embeddings, adj, y, train_mask)
@@ -91,8 +91,6 @@ def train_bridge_model(model, target_table, non_table_embeddings, adj, epochs=10
 
 def main():
     """Main demo function for tml1m dataset"""
-    print("This work is conducted on the TML1M dataset from SJTUTables, a dataset of users, movies, and ratings.")
-    print()
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     db_config = {
@@ -100,8 +98,8 @@ def main():
         'host': 'localhost',
         'port': 3306,
         'database': 'tml1m',
-        'username': 'your username',
-        'password': 'your password'
+        'username': 'root',
+        'password': 'cfy1007'
     }
     train_tlsql = """
     TRAIN WITH (users.*, movies.*, ratings.*)
@@ -145,11 +143,11 @@ def main():
         target_table.y, train_mask, val_mask, test_mask
     )
     print(f"Random Guess - Train Acc: {random_train_acc:.4f}, Val Acc: {random_val_acc:.4f}, Test Acc: {random_test_acc:.4f}")
-    
+
     # MLP
     print("\nRunning MLP Baseline...")
     mlp_val_acc, mlp_test_acc = run_mlp_baseline(target_table, device=device)
-    
+
     # BRIDGE Model
     print("\nRunning BRIDGE Model...")
     bridge_model = build_bridge_model(
@@ -162,11 +160,10 @@ def main():
         bridge_model, target_table, non_table_embeddings, adj
     )
 
-    print(f"{'Method':<20} {'Val Acc':<15} {'Test Acc':<15}")
+    print(f"\n{'Method':<20} {'Val Acc':<15} {'Test Acc':<15}")
     print(f"{'Random Guess':<20} {random_val_acc:<15.4f} {random_test_acc:<15.4f}")
     print(f"{'MLP':<20} {mlp_val_acc:<15.4f} {mlp_test_acc:<15.4f}")
     print(f"{'BRIDGE':<20} {bridge_val_acc:<15.4f} {bridge_test_acc:<15.4f}")
-    print("="*60)
 
 
 if __name__ == "__main__":

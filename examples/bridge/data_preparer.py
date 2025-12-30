@@ -51,7 +51,6 @@ def prepare_bridge_data(
     for col in target_df.columns:
         if col == target_pkey:
             continue
-        
         if col == col_name and task_type.upper() == 'CLF':
             col_types[col] = ColType.CATEGORICAL
         elif target_df[col].dtype in ['int64', 'float64']:
@@ -103,8 +102,8 @@ def prepare_bridge_data(
     relation_df = relation_df[relation_df['UserID'].notna() & relation_df['MovieID'].notna()]
 
     emb_size = 128
-    
-    #For simplicity, we use random embeddings here, but we recommend using models such as BERT for preprocessing.
+
+    # For simplicity, we use random embeddings here, but we recommend using models such as BERT for preprocessing.
     movie_embeddings = torch.randn(n_movies, emb_size).to(device)
 
     graph = build_homo_graph(
@@ -130,12 +129,4 @@ def prepare_bridge_data(
     target_table.val_mask = val_mask.to(device)
     target_table.test_mask = test_mask.to(device)
 
-    return (
-        target_table,
-        target_table.y,
-        movie_embeddings,
-        adj,
-        target_table.train_mask,
-        target_table.val_mask,
-        target_table.test_mask
-    )
+    return target_table, movie_embeddings, adj

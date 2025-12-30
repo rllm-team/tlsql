@@ -9,7 +9,7 @@ from tlsql.examples.bridge.data_preparer import prepare_bridge_data
 
 def _parse_tlsql_statements(train_tlsql, validate_tlsql, predict_tlsql):
     """Parse all TLSQL statements and return conversion results.
-    
+
     Returns:
         tuple: (predict_sqls, train_sqls, validate_sqls).
     """
@@ -36,7 +36,7 @@ def _execute_sql_list(executor, sql_list, error_prefix="load failed"):
 
 def _load_test_data(executor, predict_sqls):
     """Load test data using SQL from convert result.
-    
+
     Returns:
         dict: Dictionary mapping table names to DataFrames, e.g., {tablename: df, ...}.
     """
@@ -48,7 +48,7 @@ def _load_test_data(executor, predict_sqls):
 
 def _load_train_data(executor, train_sqls):
     """Load training data using SQL from convert result.
-    
+
     Returns:
         dict: Dictionary mapping table names to DataFrames, e.g., {tablename: df, ...}.
     """
@@ -60,7 +60,7 @@ def _load_train_data(executor, train_sqls):
 
 def _load_validate_data(executor, validate_sqls):
     """Load validation data using SQL from convert result
-    
+
     Returns:
         dict: Dictionary mapping table names to DataFrames, e.g., {tablename: df, ...}.
     """
@@ -113,7 +113,7 @@ def prepare_data_from_tlsql(
 
     test_df = list(test_data.values())[0] if test_data else None
 
-    target_table, y, non_table_embeddings, adj, train_mask, val_mask, test_mask = prepare_bridge_data(
+    target_table, non_table_embeddings, adj = prepare_bridge_data(
         train_data=train_data,
         validate_data=validate_data,
         test_data=test_df,
@@ -122,11 +122,6 @@ def prepare_data_from_tlsql(
         device=device,
         db_config=db_config
     )
-
-    target_table.train_mask = train_mask
-    target_table.val_mask = val_mask
-    target_table.test_mask = test_mask
-    target_table.y = y
 
     emb_size = non_table_embeddings.size(1) if non_table_embeddings is not None else 128
     return target_table, non_table_embeddings, adj, emb_size

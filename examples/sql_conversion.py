@@ -75,7 +75,6 @@ def validate():
 
 
 if __name__ == "__main__":
-    print("This work is conducted on the TML1M dataset from SJTUTables, a dataset of users, movies, and ratings.")
     train()
     test()
     validate()

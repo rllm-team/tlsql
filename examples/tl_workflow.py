@@ -5,6 +5,7 @@ Demonstrates three-level logic for TLSQL statements:
 - Level II: PREDICT + TRAIN (TRAIN optional)
 - Level III: PREDICT + TRAIN + VALIDATE (both TRAIN and VALIDATE optional)
 
+This work is conducted on the TML1M dataset from SJTUTables, a dataset of users, movies, and ratings.
 """
 
 
@@ -79,12 +80,7 @@ def level_III():
     print()
 
 
-def main():
-    print("This work is conducted on the TML1M dataset from SJTUTables, a dataset of users, movies, and ratings.")
+if __name__ == "__main__":
     level_I()
     level_II()
     level_III()
-
-
-if __name__ == "__main__":
-    main()

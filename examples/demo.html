@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TLSQL + BRIDGE 机器学习演示</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            color: white;
+            padding: 40px 20px;
+            margin-bottom: 30px;
+        }
+
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+        }
+
+        .card h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .card h3 {
+            color: #764ba2;
+            margin-top: 25px;
+            margin-bottom: 15px;
+            font-size: 1.4em;
+        }
+
+        .code-block {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 15px 0;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.5;
+            position: relative;
+        }
+
+        .code-block::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+        }
+
+        .code-block .keyword {
+            color: #569cd6;
+        }
+
+        .code-block .string {
+            color: #ce9178;
+        }
+
+        .code-block .comment {
+            color: #6a9955;
+        }
+
+        .code-block .function {
+            color: #dcdcaa;
+        }
+
+        .workflow {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            margin: 30px 0;
+            gap: 20px;
+        }
+
+        .workflow-step {
+            flex: 1;
+            min-width: 200px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            position: relative;
+            transition: transform 0.3s ease;
+        }
+
+        .workflow-step:hover {
+            transform: scale(1.05);
+        }
+
+        .workflow-step::after {
+            content: '→';
+            position: absolute;
+            right: -30px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 2em;
+            color: #667eea;
+        }
+
+        .workflow-step:last-child::after {
+            display: none;
+        }
+
+        .workflow-step-number {
+            font-size: 2em;
+            font-weight: bold;
+            margin-bottom: 10px;
+            opacity: 0.8;
+        }
+
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .results-table th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .results-table td {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .results-table tr:hover {
+            background: #f5f5f5;
+        }
+
+        .results-table .best {
+            background: #e8f5e9;
+            font-weight: bold;
+            color: #2e7d32;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+
+        .badge-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .badge-success {
+            background: #4caf50;
+            color: white;
+        }
+
+        .badge-info {
+            background: #2196f3;
+            color: white;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .feature-item {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .feature-item h4 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+         .highlight {
+             background: linear-gradient(120deg, #84fab0 0%, #8fd3f4 100%);
+             padding: 2px 8px;
+             border-radius: 4px;
+             font-weight: 600;
+         }
+
+         .radio-group {
+             display: flex;
+             gap: 20px;
+             margin: 20px 0;
+             flex-wrap: wrap;
+         }
+
+         .radio-option {
+             flex: 1;
+             min-width: 200px;
+             padding: 20px;
+             border: 2px solid #e0e0e0;
+             border-radius: 8px;
+             cursor: pointer;
+             transition: all 0.3s ease;
+             background: #f8f9fa;
+         }
+
+         .radio-option:hover {
+             border-color: #667eea;
+             background: #f0f4ff;
+         }
+
+         .radio-option.selected {
+             border-color: #667eea;
+             background: linear-gradient(135deg, #f0f4ff 0%, #e8f0ff 100%);
+             box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+         }
+
+         .radio-option input[type="radio"] {
+             margin-right: 10px;
+             cursor: pointer;
+         }
+
+         .radio-option label {
+             cursor: pointer;
+             font-weight: 600;
+             color: #667eea;
+             display: block;
+             margin-bottom: 10px;
+         }
+
+         .form-group {
+             margin: 20px 0;
+         }
+
+         .form-group label {
+             display: block;
+             margin-bottom: 8px;
+             font-weight: 600;
+             color: #333;
+         }
+
+         .form-group input,
+         .form-group select {
+             width: 100%;
+             padding: 12px;
+             border: 2px solid #e0e0e0;
+             border-radius: 6px;
+             font-size: 14px;
+             transition: border-color 0.3s ease;
+         }
+
+         .form-group input:focus,
+         .form-group select:focus {
+             outline: none;
+             border-color: #667eea;
+         }
+
+         .form-row {
+             display: grid;
+             grid-template-columns: 1fr 1fr;
+             gap: 20px;
+             margin: 15px 0;
+         }
+
+         .param-grid {
+             display: grid;
+             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+             gap: 20px;
+             margin: 20px 0;
+         }
+
+         .param-item {
+             background: #f8f9fa;
+             padding: 15px;
+             border-radius: 8px;
+             border-left: 4px solid #764ba2;
+         }
+
+         .param-item .param-name {
+             font-weight: 600;
+             color: #764ba2;
+             margin-bottom: 8px;
+         }
+
+         .param-item .param-range {
+             color: #666;
+             font-size: 0.9em;
+         }
+
+         .param-item .param-desc {
+             color: #888;
+             font-size: 0.85em;
+             margin-top: 5px;
+         }
+
+         .upload-area {
+             border: 2px dashed #667eea;
+             border-radius: 8px;
+             padding: 40px;
+             text-align: center;
+             background: #f8f9fa;
+             margin: 15px 0;
+             transition: all 0.3s ease;
+         }
+
+         .upload-area:hover {
+             background: #f0f4ff;
+             border-color: #764ba2;
+         }
+
+         .upload-icon {
+             font-size: 3em;
+             margin-bottom: 10px;
+         }
+
+         @media (max-width: 768px) {
+             .workflow {
+                 flex-direction: column;
+             }
+
+             .workflow-step::after {
+                 content: '↓';
+                 right: 50%;
+                 top: auto;
+                 bottom: -30px;
+                 transform: translateX(50%);
+             }
+
+             header h1 {
+                 font-size: 2em;
+             }
+
+             .form-row {
+                 grid-template-columns: 1fr;
+             }
+
+             .param-grid {
+                 grid-template-columns: 1fr;
+             }
+         }
+     </style>
+     <script>
+         // 数据源切换功能（仅用于展示）
+         document.addEventListener('DOMContentLoaded', function() {
+             const dbRadio = document.getElementById('source-db');
+             const fileRadio = document.getElementById('source-file');
+             const dbConfig = document.getElementById('db-config');
+             const fileConfig = document.getElementById('file-config');
+             const radioOptions = document.querySelectorAll('.radio-option');
+
+             function updateDataSource() {
+                 if (dbRadio.checked) {
+                     dbConfig.style.display = 'block';
+                     fileConfig.style.display = 'none';
+                     radioOptions[0].classList.add('selected');
+                     radioOptions[1].classList.remove('selected');
+                 } else {
+                     dbConfig.style.display = 'none';
+                     fileConfig.style.display = 'block';
+                     radioOptions[0].classList.remove('selected');
+                     radioOptions[1].classList.add('selected');
+                 }
+             }
+
+             dbRadio.addEventListener('change', updateDataSource);
+             fileRadio.addEventListener('change', updateDataSource);
+
+             // 点击整个选项区域也可以切换
+             radioOptions.forEach(option => {
+                 option.addEventListener('click', function(e) {
+                     if (e.target.type !== 'radio') {
+                         const radio = this.querySelector('input[type="radio"]');
+                         radio.checked = true;
+                         updateDataSource();
+                     }
+                 });
+             });
+         });
+     </script>
+ </head>
+<body>
+    <header>
+        <h1>🚀 TLSQL + BRIDGE</h1>
+        <p>SQL-like 语言与图神经网络结合的表格学习演示</p>
+    </header>
+
+    <div class="container">
+        <!-- 简介部分 -->
+        <div class="card">
+            <h2>📖 项目简介</h2>
+            <p style="font-size: 1.1em; margin-bottom: 20px;">
+                <span class="highlight">TLSQL</span> 是一个专为关系型表格学习任务设计的 SQL-like 语言，
+                它允许您使用熟悉的 SQL 语法来定义机器学习工作流。
+                结合 <span class="highlight">BRIDGE</span> 模型，我们可以高效地处理多表关系数据并完成分类任务。
+            </p>
+
+            <div class="feature-grid">
+                <div class="feature-item">
+                    <h4>🎯 TLSQL 特性</h4>
+                    <ul>
+                        <li>三种语句类型：TRAIN, VALIDATE, PREDICT</li>
+                        <li>SQL-like 语法，易于使用</li>
+                        <li>自动转换为标准 SQL</li>
+                    </ul>
+                </div>
+                <div class="feature-item">
+                    <h4>🧠 BRIDGE 模型</h4>
+                    <ul>
+                        <li>结合表格编码器和图编码器</li>
+                        <li>处理多表关系数据</li>
+                        <li>支持分类和回归任务</li>
+                    </ul>
+                </div>
+                <div class="feature-item">
+                    <h4>📊 应用场景</h4>
+                    <ul>
+                        <li>用户画像预测</li>
+                        <li>推荐系统</li>
+                        <li>关系数据挖掘</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- TLSQL 语法示例 -->
+        <div class="card">
+            <h2>📝 TLSQL 语法示例</h2>
+            
+            <h3>1. TRAIN 语句 - 定义训练数据</h3>
+            <div class="code-block">
+<span class="keyword">TRAIN</span> <span class="keyword">WITH</span> (<span class="string">users.*</span>, <span class="string">movies.*</span>, <span class="string">ratings.*</span>)
+<span class="keyword">FROM</span> users, movies, ratings
+<span class="keyword">WHERE</span> users.Gender=<span class="string">'M'</span> <span class="keyword">AND</span> users.userID <span class="keyword">BETWEEN</span> <span class="string">1</span> <span class="keyword">AND</span> <span class="string">3000</span>
+            </div>
+            <p style="margin-top: 10px; color: #666;">
+                从 users、movies、ratings 三个表中选择训练数据，筛选条件为男性用户且 ID 在 1-3000 之间。
+            </p>
+
+            <h3>2. VALIDATE 语句 - 定义验证数据</h3>
+            <div class="code-block">
+<span class="keyword">VALIDATE</span> <span class="keyword">WITH</span> (<span class="string">users.*</span>)
+<span class="keyword">FROM</span> users
+<span class="keyword">WHERE</span> users.Gender=<span class="string">'M'</span> <span class="keyword">AND</span> users.userID &gt; <span class="string">3000</span>
+            </div>
+            <p style="margin-top: 10px; color: #666;">
+                从 users 表中选择验证数据，筛选条件为男性用户且 ID 大于 3000。
+            </p>
+
+            <h3>3. PREDICT 语句 - 定义预测任务</h3>
+            <div class="code-block">
+<span class="keyword">PREDICT</span> <span class="function">VALUE</span>(users.Age, <span class="string">CLF</span>)
+<span class="keyword">FROM</span> users
+<span class="keyword">WHERE</span> users.Gender=<span class="string">'F'</span>
+            </div>
+             <p style="margin-top: 10px; color: #666;">
+                 预测女性用户的年龄（Age），任务类型为分类（CLF）。CLF 表示分类任务，REG 表示回归任务。
+             </p>
+         </div>
+
+         <!-- 数据源选择 -->
+         <div class="card">
+             <h2>📂 数据源配置</h2>
+             <p style="margin-bottom: 20px;">
+                 您可以选择从数据库连接或上传本地文件来获取数据。系统支持多种数据源格式。
+             </p>
+
+             <div class="radio-group">
+                 <div class="radio-option selected">
+                     <input type="radio" id="source-db" name="data-source" value="database" checked>
+                     <label for="source-db">🗄️ 数据库连接</label>
+                     <p style="color: #666; font-size: 0.9em; margin-top: 10px;">
+                         直接从关系型数据库（MySQL、PostgreSQL等）读取数据
+                     </p>
+                 </div>
+                 <div class="radio-option">
+                     <input type="radio" id="source-file" name="data-source" value="file">
+                     <label for="source-file">📁 本地文件上传</label>
+                     <p style="color: #666; font-size: 0.9em; margin-top: 10px;">
+                         上传 CSV、Excel 等格式的本地文件
+                     </p>
+                 </div>
+             </div>
+
+             <!-- 数据库配置表单 -->
+             <div id="db-config" style="margin-top: 30px;">
+                 <h3>数据库连接配置</h3>
+                 <div class="form-row">
+                     <div class="form-group">
+                         <label>数据库类型</label>
+                         <select>
+                             <option>MySQL</option>
+                             <option>PostgreSQL</option>
+                             <option>SQLite</option>
+                         </select>
+                     </div>
+                     <div class="form-group">
+                         <label>主机地址</label>
+                         <input type="text" value="localhost" placeholder="localhost">
+                     </div>
+                 </div>
+                 <div class="form-row">
+                     <div class="form-group">
+                         <label>端口</label>
+                         <input type="number" value="3306" placeholder="3306">
+                     </div>
+                     <div class="form-group">
+                         <label>数据库名</label>
+                         <input type="text" value="tml1m" placeholder="database_name">
+                     </div>
+                 </div>
+                 <div class="form-row">
+                     <div class="form-group">
+                         <label>用户名</label>
+                         <input type="text" value="root" placeholder="username">
+                     </div>
+                     <div class="form-group">
+                         <label>密码</label>
+                         <input type="password" value="******" placeholder="password">
+                     </div>
+                 </div>
+             </div>
+
+             <!-- 文件上传配置 -->
+             <div id="file-config" style="margin-top: 30px; display: none;">
+                 <h3>本地文件上传</h3>
+                 <div class="upload-area">
+                     <div class="upload-icon">📤</div>
+                     <p style="font-size: 1.1em; margin: 10px 0; color: #667eea; font-weight: 600;">
+                         点击或拖拽文件到此处上传
+                     </p>
+                     <p style="color: #888; font-size: 0.9em;">
+                         支持格式：CSV (.csv), Excel (.xlsx, .xls), JSON (.json)
+                     </p>
+                 </div>
+                 <div class="form-group" style="margin-top: 20px;">
+                     <label>文件格式说明</label>
+                     <ul style="margin-left: 20px; color: #666; line-height: 2;">
+                         <li><strong>CSV</strong>: 逗号分隔值文件，第一行为列名</li>
+                         <li><strong>Excel</strong>: 支持多工作表，每个工作表对应一个表</li>
+                         <li><strong>JSON</strong>: JSON 格式，支持嵌套结构</li>
+                     </ul>
+                 </div>
+             </div>
+         </div>
+
+         <!-- 工作流程 -->
+        <div class="card">
+            <h2>🔄 完整工作流程</h2>
+            <div class="workflow">
+                <div class="workflow-step">
+                    <div class="workflow-step-number">1</div>
+                    <div>编写 TLSQL 语句</div>
+                </div>
+                <div class="workflow-step">
+                    <div class="workflow-step-number">2</div>
+                    <div>转换为标准 SQL</div>
+                </div>
+                <div class="workflow-step">
+                    <div class="workflow-step-number">3</div>
+                    <div>从数据库加载数据</div>
+                </div>
+                <div class="workflow-step">
+                    <div class="workflow-step-number">4</div>
+                    <div>构建图结构</div>
+                </div>
+                <div class="workflow-step">
+                    <div class="workflow-step-number">5</div>
+                    <div>训练 BRIDGE 模型</div>
+                </div>
+                <div class="workflow-step">
+                    <div class="workflow-step-number">6</div>
+                    <div>评估与预测</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- BRIDGE 模型架构 -->
+        <div class="card">
+            <h2>🏗️ BRIDGE 模型架构</h2>
+            <p style="margin-bottom: 20px;">
+                BRIDGE 模型结合了表格编码器和图编码器，能够同时利用表格特征和关系图信息。
+            </p>
+            
+            <h3>核心组件</h3>
+            <ul style="margin-left: 20px; line-height: 2;">
+                <li><strong>TableEncoder</strong>: 使用 TabTransformer 处理表格特征</li>
+                <li><strong>GraphEncoder</strong>: 使用 GCN 处理图结构信息</li>
+                <li><strong>融合层</strong>: 将表格特征和图特征融合</li>
+                <li><strong>分类器</strong>: 输出最终预测结果</li>
+            </ul>
+
+            <h3>数据流</h3>
+             <div class="code-block" style="margin-top: 15px;">
+ 表格数据 (TableData) → TableEncoder → 表格嵌入
+                                     ↓
+ 关系图 (Adjacency Matrix) → GraphEncoder → 图嵌入
+                                     ↓
+                             特征融合 → 分类器 → 预测结果
+             </div>
+         </div>
+
+         <!-- BRIDGE 模型参数搜索范围 -->
+         <div class="card">
+             <h2>⚙️ BRIDGE 模型参数搜索范围</h2>
+             <p style="margin-bottom: 20px;">
+                 在训练 BRIDGE 模型时，可以通过网格搜索或随机搜索来找到最佳的超参数组合。
+                 以下是推荐的参数搜索范围。
+             </p>
+
+             <div class="param-grid">
+                 <div class="param-item">
+                     <div class="param-name">学习率 (Learning Rate)</div>
+                     <div class="param-range">范围: 0.0001 - 0.01</div>
+                     <div class="param-desc">推荐值: 0.001, 0.005</div>
+                 </div>
+                 <div class="param-item">
+                     <div class="param-name">权重衰减 (Weight Decay)</div>
+                     <div class="param-range">范围: 1e-6 - 1e-3</div>
+                     <div class="param-desc">推荐值: 1e-4, 5e-4</div>
+                 </div>
+                 <div class="param-item">
+                     <div class="param-name">训练轮数 (Epochs)</div>
+                     <div class="param-range">范围: 50 - 300</div>
+                     <div class="param-desc">推荐值: 100, 150, 200</div>
+                 </div>
+                 <div class="param-item">
+                     <div class="param-name">嵌入维度 (Embedding Size)</div>
+                     <div class="param-range">范围: 64 - 256</div>
+                     <div class="param-desc">推荐值: 128, 192</div>
+                 </div>
+                 <div class="param-item">
+                     <div class="param-name">GCN 层数 (GCN Layers)</div>
+                     <div class="param-range">范围: 1 - 4</div>
+                     <div class="param-desc">推荐值: 2, 3</div>
+                 </div>
+                 <div class="param-item">
+                     <div class="param-name">GCN 隐藏维度 (GCN Hidden Dim)</div>
+                     <div class="param-range">范围: 64 - 512</div>
+                     <div class="param-desc">推荐值: 128, 256</div>
+                 </div>
+                 <div class="param-item">
+                     <div class="param-name">Dropout 比率</div>
+                     <div class="param-range">范围: 0.0 - 0.5</div>
+                     <div class="param-desc">推荐值: 0.1, 0.2, 0.3</div>
+                 </div>
+                 <div class="param-item">
+                     <div class="param-name">批次大小 (Batch Size)</div>
+                     <div class="param-range">范围: 32 - 512</div>
+                     <div class="param-desc">推荐值: 128, 256</div>
+                 </div>
+             </div>
+
+             <h3 style="margin-top: 30px;">参数搜索策略</h3>
+             <div class="feature-grid" style="margin-top: 20px;">
+                 <div class="feature-item">
+                     <h4>🔍 网格搜索 (Grid Search)</h4>
+                     <p>遍历所有参数组合，找到最优解。适合参数空间较小的情况。</p>
+                 </div>
+                 <div class="feature-item">
+                     <h4>🎲 随机搜索 (Random Search)</h4>
+                     <p>随机采样参数组合，更高效。适合参数空间较大的情况。</p>
+                 </div>
+                 <div class="feature-item">
+                     <h4>🎯 贝叶斯优化 (Bayesian Optimization)</h4>
+                     <p>基于历史结果智能选择下一组参数，收敛更快。</p>
+                 </div>
+             </div>
+
+             <h3 style="margin-top: 30px;">示例配置</h3>
+             <div class="code-block" style="margin-top: 15px;">
+<span class="comment"># 参数搜索配置示例</span>
+param_search_config = {
+    <span class="string">"learning_rate"</span>: [<span class="string">0.001</span>, <span class="string">0.005</span>, <span class="string">0.01</span>],
+    <span class="string">"weight_decay"</span>: [<span class="string">1e-5</span>, <span class="string">1e-4</span>, <span class="string">5e-4</span>],
+    <span class="string">"epochs"</span>: [<span class="string">100</span>, <span class="string">150</span>, <span class="string">200</span>],
+    <span class="string">"embedding_size"</span>: [<span class="string">128</span>, <span class="string">192</span>],
+    <span class="string">"gcn_layers"</span>: [<span class="string">2</span>, <span class="string">3</span>],
+    <span class="string">"gcn_hidden_dim"</span>: [<span class="string">128</span>, <span class="string">256</span>],
+    <span class="string">"dropout"</span>: [<span class="string">0.1</span>, <span class="string">0.2</span>, <span class="string">0.3</span>],
+    <span class="string">"batch_size"</span>: [<span class="string">128</span>, <span class="string">256</span>]
+}
+
+<span class="comment"># 使用网格搜索</span>
+best_params = grid_search(
+    model=bridge_model,
+    param_grid=param_search_config,
+    train_data=(target_table, non_table_embeddings, adj),
+    cv_folds=<span class="string">5</span>
+)
+             </div>
+         </div>
+
+         <!-- 演示结果 -->
+        <div class="card">
+            <h2>📊 演示结果对比</h2>
+            <p style="margin-bottom: 20px;">
+                在 TML1M 数据集上，我们对比了三种方法：随机猜测、MLP 和 BRIDGE 模型。
+                任务目标：预测用户年龄（7 个类别）。
+            </p>
+
+            <table class="results-table">
+                <thead>
+                    <tr>
+                        <th>方法</th>
+                        <th>验证集准确率</th>
+                        <th>测试集准确率</th>
+                        <th>说明</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Random Guess <span class="badge badge-info">Baseline</span></td>
+                        <td>0.1429</td>
+                        <td>0.1429</td>
+                        <td>随机猜测基准（1/7 ≈ 0.1429）</td>
+                    </tr>
+                    <tr>
+                        <td>MLP <span class="badge badge-primary">Baseline</span></td>
+                        <td>0.1975</td>
+                        <td>0.2044</td>
+                        <td>多层感知机，仅使用表格特征</td>
+                    </tr>
+                    <tr class="best">
+                        <td>BRIDGE <span class="badge badge-success">Best</span></td>
+                        <td>0.3875</td>
+                        <td>0.3265</td>
+                        <td>结合表格和图结构信息</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3 style="margin-top: 30px;">结果分析</h3>
+            <ul style="margin-left: 20px; line-height: 2;">
+                <li>BRIDGE 模型相比随机猜测提升了 <strong>127%</strong> 的准确率</li>
+                <li>BRIDGE 模型能够利用多表关系信息，提升预测性能</li>
+                <li>通过图结构编码，模型可以学习到用户-电影之间的交互模式</li>
+            </ul>
+        </div>
+
+        <!-- 代码示例 -->
+        <div class="card">
+            <h2>💻 Python 代码示例</h2>
+            <h3>完整使用流程</h3>
+            <div class="code-block">
+<span class="comment"># 1. 导入必要的模块</span>
+<span class="keyword">import</span> torch
+<span class="keyword">from</span> tlsql.examples.bridge.data_loader <span class="keyword">import</span> prepare_data_from_tlsql
+<span class="keyword">from</span> tlsql.examples.bridge.model <span class="keyword">import</span> build_bridge_model
+<span class="keyword">from</span> tlsql.examples.bridge_demo <span class="keyword">import</span> train_bridge_model
+
+<span class="comment"># 2. 定义 TLSQL 语句</span>
+train_tlsql = <span class="string">"""
+TRAIN WITH (users.*, movies.*, ratings.*)
+FROM users, movies, ratings
+WHERE users.Gender='M' and users.userID BETWEEN 1 AND 3000
+"""</span>
+
+validate_tlsql = <span class="string">"""
+VALIDATE WITH (users.*)
+FROM users
+WHERE users.Gender='M' and users.userID>3000
+"""</span>
+
+predict_tlsql = <span class="string">"""
+PREDICT VALUE(users.Age, CLF)
+FROM users
+WHERE users.Gender='F'
+"""</span>
+
+<span class="comment"># 3. 准备数据</span>
+target_table, non_table_embeddings, adj, emb_size = prepare_data_from_tlsql(
+    train_tlsql=train_tlsql,
+    validate_tlsql=validate_tlsql,
+    predict_tlsql=predict_tlsql,
+    db_config=db_config,
+    device=device
+)
+
+<span class="comment"># 4. 构建模型</span>
+bridge_model = build_bridge_model(
+    target_table.num_classes,
+    target_table.metadata,
+    emb_size
+).to(device)
+
+<span class="comment"># 5. 训练模型</span>
+bridge_model, val_acc, test_acc = train_bridge_model(
+    bridge_model, target_table, non_table_embeddings, adj
+)
+            </div>
+        </div>
+
+        <!-- 优势总结 -->
+        <div class="card">
+            <h2>✨ 主要优势</h2>
+            <div class="feature-grid">
+                <div class="feature-item">
+                    <h4>🎨 简洁的语法</h4>
+                    <p>使用熟悉的 SQL 语法，无需学习复杂的 API</p>
+                </div>
+                <div class="feature-item">
+                    <h4>🔗 关系建模</h4>
+                    <p>自动处理多表关系，构建图结构</p>
+                </div>
+                <div class="feature-item">
+                    <h4>🚀 端到端流程</h4>
+                    <p>从 SQL 查询到模型训练，一站式解决方案</p>
+                </div>
+                <div class="feature-item">
+                    <h4>📈 性能提升</h4>
+                    <p>结合表格和图信息，获得更好的预测效果</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 页脚 -->
+        <div class="card" style="text-align: center; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+            <h2 style="color: white; border-bottom: 3px solid white;">🎓 了解更多</h2>
+            <p style="margin-top: 20px; font-size: 1.1em;">
+                这是一个演示页面，展示了 TLSQL 与 BRIDGE 模型结合进行机器学习任务的完整流程。
+            </p>
+            <p style="margin-top: 10px; opacity: 0.9;">
+                实际使用时，请参考项目文档和代码示例。
+            </p>
+        </div>
+    </div>
+</body>
+</html>
