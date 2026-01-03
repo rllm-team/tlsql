@@ -30,25 +30,41 @@ if parent_dir not in sys.path:
 # Force reload to ensure we're using the local version
 tlsql_available = False
 try:
-    # Remove tlsql from sys.modules if it exists to force reload
-    if 'tlsql' in sys.modules:
-        del sys.modules['tlsql']
-    if 'tlsql.tlsql' in sys.modules:
-        del sys.modules['tlsql.tlsql']
-    if 'tlsql.tlsql.sql_generator' in sys.modules:
-        del sys.modules['tlsql.tlsql.sql_generator']
+    # Remove all tlsql-related modules from sys.modules to force reload
+    modules_to_remove = [key for key in sys.modules.keys() if key.startswith('tlsql')]
+    for module_name in modules_to_remove:
+        del sys.modules[module_name]
+    
+    # Ensure parent_dir is at the beginning of sys.path to prioritize local code
+    if parent_dir in sys.path:
+        sys.path.remove(parent_dir)
+    sys.path.insert(0, parent_dir)
+    
+    # Verify we're importing from local code
+    local_tlsql_init = os.path.join(parent_dir, 'tlsql', '__init__.py')
+    if os.path.exists(local_tlsql_init):
+        print(f"Using local tlsql from: {local_tlsql_init}")
+    else:
+        print(f"Warning: Local tlsql/__init__.py not found at {local_tlsql_init}")
     
     import tlsql
     import tlsql.tlsql
     import tlsql.tlsql.ast_nodes  # Test import
     
+    # Verify we're using the local version
+    tlsql_file = getattr(tlsql, '__file__', None)
+    if tlsql_file:
+        print(f"Imported tlsql from: {tlsql_file}")
+        if not tlsql_file.startswith(parent_dir):
+            print(f"Warning: tlsql is not from local directory! Expected: {parent_dir}")
+    
     # Test that convert function exists
     if not hasattr(tlsql, 'convert'):
         print(f"Warning: tlsql module does not have 'convert' attribute")
-        print(f"tlsql module location: {tlsql.__file__}")
+        print(f"tlsql module location: {tlsql_file}")
         print(f"tlsql module attributes: {dir(tlsql)}")
     else:
-        print(f"✓ Successfully imported tlsql.convert from {tlsql.__file__}")
+        print(f"✓ Successfully imported tlsql.convert from {tlsql_file}")
         tlsql_available = True
 except ImportError as e:
     # Print error for debugging but don't fail the build
