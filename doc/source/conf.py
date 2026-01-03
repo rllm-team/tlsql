@@ -14,19 +14,43 @@ import os
 import sys
 
 # Add the project root to the path so we can import tlsql
-# For Read the Docs: try importing first (if installed via pip)
 # conf.py is in doc/source/, so go up two levels to reach tlsql/ directory
+# Then go up one more level to reach the parent directory that contains tlsql/
 tlsql_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
-if tlsql_dir not in sys.path:
-    sys.path.insert(0, tlsql_dir)
 parent_dir = os.path.abspath(os.path.join(tlsql_dir, '..'))
+
+# Only add parent_dir to sys.path (not tlsql_dir)
+# This ensures that 'import tlsql' imports tlsql/__init__.py (which has convert)
+# and 'import tlsql.tlsql' imports tlsql/tlsql/__init__.py
+# If we add tlsql_dir to sys.path, 'import tlsql' would import tlsql/tlsql/__init__.py instead
 if parent_dir not in sys.path:
     sys.path.insert(0, parent_dir)
 
 # Ensure tlsql can be imported for viewcode extension
+# Force reload to ensure we're using the local version
 try:
+    # Remove tlsql from sys.modules if it exists to force reload
+    if 'tlsql' in sys.modules:
+        del sys.modules['tlsql']
+    if 'tlsql.tlsql' in sys.modules:
+        del sys.modules['tlsql.tlsql']
+    
+    import tlsql
     import tlsql.tlsql
-except ImportError:
+    import tlsql.tlsql.ast_nodes  # Test import
+    
+    # Test that convert function exists
+    if not hasattr(tlsql, 'convert'):
+        print(f"Warning: tlsql module does not have 'convert' attribute")
+        print(f"tlsql module location: {tlsql.__file__}")
+        print(f"tlsql module attributes: {dir(tlsql)}")
+    else:
+        print(f"✓ Successfully imported tlsql.convert from {tlsql.__file__}")
+except ImportError as e:
+    # Print error for debugging but don't fail
+    print(f"Warning: Could not import tlsql: {e}")
+    import traceback
+    traceback.print_exc()
     pass
 
 # -- Project information -----------------------------------------------------

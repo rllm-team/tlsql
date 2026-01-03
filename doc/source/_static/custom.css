@@ -364,7 +364,24 @@ dl.py.method > dt {
     margin-left: 0 !important;
     padding-left: 0 !important;
     text-indent: 0 !important;
+}
+
+/* Keep signatures on one line, but allow wrapping for long parameter lists */
+dl.py.class dt .sig-name,
+dl.py.class > dt .sig-name,
+dl.py.function dt .sig-name,
+dl.py.function > dt .sig-name,
+dl.py.method dt .sig-name,
+dl.py.method > dt .sig-name {
     white-space: nowrap !important;
+}
+
+/* Allow parameter lists to wrap */
+dl.py.class dt .sig-paren,
+dl.py.class dt .sig-param,
+dl.py.class > dt .sig-paren,
+dl.py.class > dt .sig-param {
+    white-space: normal !important;
 }
 
 /* Spacing for class/function descriptions (dd) */
@@ -448,16 +465,23 @@ dl.py.method ~ .field-list {
 /* Spacing for viewcode links - ensure they stay on same line */
 dl.py.class dt .viewcode-link,
 dl.py.function dt .viewcode-link,
-dl.py.method dt .viewcode-link,
 dl.py.class dt a.viewcode-link,
 dl.py.function dt a.viewcode-link,
-dl.py.method dt a.viewcode-link,
 dl.py.class dt .viewcode-link a,
-dl.py.function dt .viewcode-link a,
-dl.py.method dt .viewcode-link a {
+dl.py.function dt .viewcode-link a {
     margin-left: 0.5em !important;
     white-space: nowrap !important;
     display: inline !important;
+}
+
+/* Hide source links for methods - only show for classes and functions */
+dl.py.method dt .viewcode-link,
+dl.py.method dt a.viewcode-link,
+dl.py.method dt .viewcode-link a,
+dl.py.method > dt .viewcode-link,
+dl.py.method > dt a.viewcode-link,
+dl.py.method > dt .viewcode-link a {
+    display: none !important;
 }
 
 /* Ensure all elements inside dt stay inline */

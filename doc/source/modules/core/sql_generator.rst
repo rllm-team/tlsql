@@ -42,8 +42,3 @@ Core Classes
    :no-members:
    :no-inherited-members:
    :show-inheritance:
-
-.. autoclass:: tlsql.tlsql.sql_generator.FilterCondition
-   :no-members:
-   :no-inherited-members:
-   :show-inheritance:

@@ -27,6 +27,8 @@ Example
         print(f"{token.type.name}: {token.value}")
 
 .. autoclass:: tlsql.tlsql.lexer.Lexer
-   :members:
+   :members: tokenize
+   :exclude-members: __init__, advance, peek, skip_whitespace, skip_comment, read_string, read_number, read_identifier, text, pos, line, column, current_char
+   :special-members:
    :no-inherited-members:
    :show-inheritance:

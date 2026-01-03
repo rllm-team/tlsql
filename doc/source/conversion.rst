@@ -104,5 +104,4 @@ The conversion returns a ``ConversionResult`` object containing:
 - ``task_type``: ``'CLF'``
 - ``target_table``: ``'users'``
 - ``where_condition``: ``"Gender = 'F'"``
-- ``filter_condition``: ``FilterCondition(table='users', condition="Gender = 'F'")``
 
