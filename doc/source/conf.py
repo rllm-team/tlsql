@@ -30,12 +30,102 @@ if parent_dir not in sys.path:
 # Force reload to ensure we're using the local version
 try:
     # Remove tlsql from sys.modules if it exists to force reload
-    if 'tlsql' in sys.modules:
-        del sys.modules['tlsql']
-    if 'tlsql.tlsql' in sys.modules:
-        del sys.modules['tlsql.tlsql']
+    modules_to_remove = [key for key in list(sys.modules.keys()) if key.startswith('tlsql')]
+    for module_name in modules_to_remove:
+        del sys.modules[module_name]
     
-    import tlsql
+    # Ensure we use the source code version by checking the path
+    # The parent_dir should contain tlsql/ directory
+    tlsql_source_path = os.path.join(parent_dir, 'tlsql', '__init__.py')
+    if os.path.exists(tlsql_source_path):
+        print(f"Using source code from: {tlsql_source_path}")
+        # The parent_dir is already in sys.path, so 'import tlsql' should work
+        # But we need to make sure it's at the front of the path
+        if parent_dir in sys.path:
+            sys.path.remove(parent_dir)
+        sys.path.insert(0, parent_dir)
+    
+    # Try to import tlsql
+    # If it fails due to FilterCondition import error from installed package,
+    # try to uninstall and use source code instead
+    try:
+        import tlsql
+        print(f"Imported tlsql from: {tlsql.__file__}")
+        
+        # Check if we're using installed package with old FilterCondition import
+        actual_path = os.path.abspath(tlsql.__file__)
+        expected_path = os.path.abspath(os.path.join(parent_dir, 'tlsql', '__init__.py'))
+        
+        if actual_path != expected_path:
+            # We're using installed package, check if it has the old import
+            try:
+                with open(actual_path, 'r', encoding='utf-8') as f:
+                    content = f.read()
+                if 'FilterCondition' in content:
+                    print(f"Warning: Installed package at {actual_path} contains FilterCondition import")
+                    print("Attempting to use source code instead...")
+                    # Try to uninstall the package
+                    import subprocess
+                    try:
+                        subprocess.check_call(
+                            [sys.executable, '-m', 'pip', 'uninstall', '-y', 'tlsql'],
+                            stdout=subprocess.DEVNULL,
+                            stderr=subprocess.DEVNULL
+                        )
+                        print("Uninstalled old tlsql package")
+                    except:
+                        pass
+                    
+                    # Remove from sys.modules and try again
+                    modules_to_remove = [key for key in list(sys.modules.keys()) if key.startswith('tlsql')]
+                    for module_name in modules_to_remove:
+                        del sys.modules[module_name]
+                    
+                    # Ensure source code path is first
+                    if parent_dir in sys.path:
+                        sys.path.remove(parent_dir)
+                    sys.path.insert(0, parent_dir)
+                    
+                    import tlsql
+                    print(f"Now using source code from: {tlsql.__file__}")
+            except:
+                pass  # If we can't read the file, continue anyway
+    except ImportError as import_err:
+        error_msg = str(import_err)
+        if 'FilterCondition' in error_msg:
+            print(f"Detected FilterCondition import error: {error_msg}")
+            print("Attempting to uninstall old package and use source code...")
+            
+            # Try to uninstall the package
+            import subprocess
+            try:
+                subprocess.check_call(
+                    [sys.executable, '-m', 'pip', 'uninstall', '-y', 'tlsql'],
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL
+                )
+                print("Uninstalled old tlsql package")
+            except:
+                pass
+            
+            # Remove from sys.modules
+            modules_to_remove = [key for key in list(sys.modules.keys()) if key.startswith('tlsql')]
+            for module_name in modules_to_remove:
+                del sys.modules[module_name]
+            
+            # Ensure source code path is first
+            if parent_dir in sys.path:
+                sys.path.remove(parent_dir)
+            sys.path.insert(0, parent_dir)
+            
+            # Try importing again
+            try:
+                import tlsql
+                print(f"Successfully imported tlsql from source: {tlsql.__file__}")
+            except ImportError:
+                print(f"Still cannot import tlsql after uninstall attempt")
+                raise
+    
     # Try to import submodules, but don't fail if they don't exist
     try:
         import tlsql.tlsql
@@ -57,6 +147,12 @@ try:
 except ImportError as e:
     # Print error for debugging but don't fail
     print(f"Warning: Could not import tlsql: {e}")
+    import traceback
+    traceback.print_exc()
+    pass
+except Exception as e:
+    # Handle any other errors gracefully
+    print(f"Warning: Error during tlsql import setup: {e}")
     import traceback
     traceback.print_exc()
     pass
