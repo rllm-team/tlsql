@@ -7,8 +7,6 @@ build:
   os: ubuntu-22.04
   tools:
     python: "3.10"
-  commands:
-    - pip uninstall -y tlsql || true
 
 python:
   install:
