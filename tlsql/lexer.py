@@ -152,14 +152,8 @@ class Lexer:
     def tokenize(self) -> List[Token]:
         """Tokenize entire input.
 
-        Steps:
-        1. Skip whitespace/comments.
-        2. Recognize string literals.
-        3. Recognize numeric literals.
-        4. Recognize identifiers & keywords.
-        5. Recognize multi-character operators.
-        6. Recognize single-character operators & punctuation.
-        7. Append EOF token.
+        Steps: Skip whitespace, recognize strings and numbers literals,
+        recognize identifiers & keywords, recognize operators append EOF token.
 
         Returns:
             List of tokens ending with EOF.

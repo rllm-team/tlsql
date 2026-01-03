@@ -40,25 +40,12 @@ class GeneratedSQL:
 
 
 @dataclass
-class FilterCondition:
-    """Filter condition for PREDICT statements.
-
-    Attributes:
-        table: Table name.
-        condition: SQL expression, e.g. user.loc = 'Beijing'.
-    """
-    table: str
-    condition: str
-
-
-@dataclass
 class ConversionResult:
     """Result from TLSQL conversion.
 
     Attributes:
         statement_type: Type of statement.
         sql_list: List of GeneratedSQL objects per table.
-        filter_condition: FilterCondition object.
         target_column: Target column reference.
         task_type: Task type.
         target_table: Target table name.
@@ -67,7 +54,6 @@ class ConversionResult:
     """
     statement_type: str
     sql_list: Optional[List[GeneratedSQL]] = None
-    filter_condition: Optional[FilterCondition] = None
     target_column: Optional[str] = None
     task_type: Optional[str] = None
     target_table: Optional[str] = None
@@ -116,7 +102,6 @@ class SQLGenerator:
 
         Returns:
             TRAIN/VALIDATE/PREDICT: List[GeneratedSQL] per table.
-            (For backward compatibility, PREDICT can also return FilterCondition via generate_predict_filter).
 
         Raises:
             GenerationError: Unknown statement type.
@@ -189,19 +174,14 @@ class SQLGenerator:
 
     def _generate_predict_result(self, predict: PredictStatement) -> ConversionResult:
         """Generate ConversionResult for PREDICT statement.
-        
         Returns a ConversionResult with sql_list containing the generated SQL
-        for test data loading, consistent with TRAIN and VALIDATE statements.
+        for test data loading.
         """
-        # Generate SQL list for PREDICT statement (for test data execution)
+        # Generate SQL list for PREDICT statement
         sql_list = self.generate_predict_sql(predict)
         
-        # Ensure sql_list is not empty
         if not sql_list:
             raise GenerationError("PREDICT statement failed to generate SQL list")
-        
-        # Also generate filter_condition for backward compatibility
-        filter_condition = self.generate_predict_filter(predict)
 
         target = predict.value.target
         target_table_name = predict.from_table.table
@@ -222,7 +202,6 @@ class SQLGenerator:
         return ConversionResult(
             statement_type='PREDICT',
             sql_list=sql_list,  # Contains GeneratedSQL objects for direct execution
-            filter_condition=filter_condition,
             target_column=target_column,
             task_type=task_type,
             target_table=target_table_name,
@@ -330,56 +309,38 @@ class SQLGenerator:
 
     def generate_predict_sql(self, predict: PredictStatement) -> List[GeneratedSQL]:
         """Generate SQL statements for PREDICT statement.
-        
+
         Generates a complete SQL statement for loading test data, consistent with
         TRAIN and VALIDATE statements. The returned sql_list can be directly used
         for database execution.
-        
+
         Args:
             predict: Parsed PREDICT statement.
-            
+
         Returns:
             List[GeneratedSQL]: A list containing a single GeneratedSQL object
             with the complete SELECT statement for test data loading.
             Format: SELECT * FROM table [WHERE condition].
-            
+
         Example:
             PREDICT VALUE users.Age AS CLF FROM users WHERE users.Gender='F'
             Returns: [GeneratedSQL(table='users', sql='SELECT * FROM users WHERE Gender = \'F\'', columns=['*'])].
         """
         table = predict.from_table.table
-        
+
         where_condition = None
         if predict.where:
             where_condition = self._expr_to_sql(
                 predict.where.condition,
                 include_table_prefix=False
             )
-        
+
         sql = self._build_select_sql(table, ['*'], where_condition)
-        
         return [GeneratedSQL(
             table=table,
             sql=sql,
             columns=['*']
         )]
-
-    def generate_predict_filter(self, predict: PredictStatement) -> FilterCondition:
-        """Convert PREDICT WHERE clause to filter."""
-        table = predict.from_table.table
-
-        if not predict.where:
-            return FilterCondition(
-                table=table,
-                condition=""
-            )
-
-        sql_condition = self._expr_to_sql(predict.where.condition, include_table_prefix=False)
-
-        return FilterCondition(
-            table=table,
-            condition=sql_condition
-        )
 
     def _expr_to_sql(self, expr: Expr, include_table_prefix: bool = True) -> str:
         """Convert expression tree to SQL string."""

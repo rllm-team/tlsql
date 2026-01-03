@@ -26,7 +26,7 @@ from .ast_nodes import (
     Statement,
 )
 from .exceptions import TLSQLError, LexerError, ParseError, GenerationError
-from .sql_generator import SQLGenerator, GeneratedSQL, FilterCondition, ConversionResult
+from .sql_generator import SQLGenerator, GeneratedSQL, ConversionResult
 
 __all__ = [
     # Tokens
@@ -64,6 +64,5 @@ __all__ = [
     "GenerationError",
     # SQL generator results
     "GeneratedSQL",
-    "FilterCondition",
     "ConversionResult",
 ]

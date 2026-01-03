@@ -122,9 +122,12 @@ class Parser:
         """Parse a complete TLSQL statement.
 
         Determines statement type based on first keyword:
-        - TRAIN WITH: training statement.
-        - PREDICT VALUE: prediction statement.
-        - VALIDATE WITH: validation statement.
+
+        TRAIN WITH: training statement.
+
+        PREDICT VALUE: prediction statement.
+
+        VALIDATE WITH: validation statement.
 
         Returns:
             Statement AST root node.
@@ -137,11 +140,11 @@ class Parser:
             )
 
         if self.match(TokenType.TRAIN):
-            statement = Statement(train=self.parse_train_statement())
+            statement = Statement(train=self.parse_train_statement(), predict=None, validate=None)
         elif self.match(TokenType.PREDICT):
-            statement = Statement(predict=self.parse_predict_statement())
+            statement = Statement(train=None, predict=self.parse_predict_statement(), validate=None)
         elif self.match(TokenType.VALIDATE):
-            statement = Statement(validate=self.parse_validate_statement())
+            statement = Statement(train=None, predict=None, validate=self.parse_validate_statement())
         else:
             raise ParseError(
                 f"Expected TRAIN, PREDICT or VALIDATE, got {self.current_token.type.name if self.current_token else 'EOF'}",

@@ -17,9 +17,7 @@ def prepare_bridge_data(
     validate_data: Optional[Dict[str, pd.DataFrame]],
     test_data: Optional[pd.DataFrame],
     target_column: str,
-    task_type: str,
-    device: torch.device,
-    db_config: Dict[str, Any]
+    device: torch.device = None,
 ):
     """Prepare data for BRIDGE model"""
     table_name, col_name = target_column.split('.')
@@ -28,105 +26,60 @@ def prepare_bridge_data(
     validate_df = validate_data[table_name] if validate_data else None
     test_df = test_data if test_data is not None else None
 
-    from tlsql.examples.executor.db_executor import DatabaseExecutor, DatabaseConfig
-    with DatabaseExecutor(DatabaseConfig(**db_config)) as executor:
-        pkeys = executor.get_primary_keys(table_name)
-        target_pkey = pkeys[0]
-
-    all_dfs = [train_df]
-    data_sources = [('train', len(train_df))]
-    if validate_df is not None:
-        all_dfs.append(validate_df)
-        data_sources.append(('validate', len(validate_df)))
-    if test_df is not None:
-        all_dfs.append(test_df)
-        data_sources.append(('test', len(test_df)))
-
+    target_pkey = 'UserID'
+    all_dfs = [df for df in [train_df, validate_df, test_df] if df is not None]
     common_cols = set.intersection(*[set(df.columns) for df in all_dfs])
-    target_df = pd.concat([df[list(common_cols)] for df in all_dfs], ignore_index=True)
-    target_df = target_df.set_index(target_pkey)
+    target_df = pd.concat([df[list(common_cols)] for df in all_dfs], ignore_index=True).set_index(target_pkey)
 
-    col_types = {}
-    total_rows = len(target_df)
-    for col in target_df.columns:
-        if col == target_pkey:
-            continue
-        if col == col_name and task_type.upper() == 'CLF':
-            col_types[col] = ColType.CATEGORICAL
-        elif target_df[col].dtype in ['int64', 'float64']:
-            unique_count = target_df[col].nunique()
-            is_categorical = unique_count <= 20 or (unique_count < total_rows * 0.1 and unique_count <= 100)
-            col_types[col] = ColType.CATEGORICAL if is_categorical else ColType.NUMERICAL
-        else:
-            col_types[col] = ColType.CATEGORICAL
-
-    target_table = TableData(
-        df=target_df,
-        col_types=col_types,
-        target_col=col_name,
-        pkey=target_pkey
-    )
-
-    if task_type.upper() == 'CLF':
-        encoded, _ = pd.factorize(target_df[col_name].values)
-        target_table.y = torch.from_numpy(encoded).long()
-    else:
-        target_table.y = torch.from_numpy(target_df[col_name].values).float()
+    col_types = {col: ColType.CATEGORICAL for col in target_df.columns}
+    target_table = TableData(df=target_df, col_types=col_types, target_col=col_name, pkey=target_pkey)
 
     n = len(target_table)
-    train_mask = torch.zeros(n, dtype=torch.bool)
-    val_mask = torch.zeros(n, dtype=torch.bool)
-    test_mask = torch.zeros(n, dtype=torch.bool)
+    train_len, val_len = len(train_df), len(validate_df) if validate_df is not None else 0
+    test_len = len(test_df) if test_df is not None else 0
+    
+    train_mask = torch.cat([
+        torch.ones(train_len, dtype=torch.bool),
+        torch.zeros(val_len + test_len, dtype=torch.bool)
+    ])
+    val_mask = torch.cat([
+        torch.zeros(train_len, dtype=torch.bool),
+        torch.ones(val_len, dtype=torch.bool),
+        torch.zeros(test_len, dtype=torch.bool)
+    ]) if val_len > 0 else torch.zeros(n, dtype=torch.bool)
+    test_mask = torch.cat([
+        torch.zeros(train_len + val_len, dtype=torch.bool),
+        torch.ones(test_len, dtype=torch.bool)
+    ]) if test_len > 0 else torch.zeros(n, dtype=torch.bool)
 
-    idx = 0
-    for source_type, count in data_sources:
-        mask = {'train': train_mask, 'validate': val_mask, 'test': test_mask}[source_type]
-        mask[idx:idx + count] = True
-        idx += count
+    encoded, _ = pd.factorize(target_df[col_name].values)
+    target_table.y = torch.from_numpy(encoded).long()
 
     relation_df = train_data['ratings']
-    src_col = [col for col in relation_df.columns if 'user' in col.lower()][0]
-    tgt_col = [col for col in relation_df.columns if 'movie' in col.lower()][0]
+    src_col = 'userID' if 'userID' in relation_df.columns else [col for col in relation_df.columns if 'user' in col.lower()][0]
+    tgt_col = 'movieID' if 'movieID' in relation_df.columns else [col for col in relation_df.columns if 'movie' in col.lower()][0]
 
-    user_ids = target_table.df.index.tolist()
-    n_users = len(target_table)
-    user_id_map = {uid: i + 1 for i, uid in enumerate(user_ids)}
-
+    user_id_map = {uid: i + 1 for i, uid in enumerate(target_table.df.index.tolist())}
     unique_movies = sorted(relation_df[tgt_col].unique())
-    n_movies = len(unique_movies)
     movie_id_map = {mid: i + 1 for i, mid in enumerate(unique_movies)}
 
     relation_df = relation_df.copy()
     relation_df['UserID'] = relation_df[src_col].map(user_id_map)
     relation_df['MovieID'] = relation_df[tgt_col].map(movie_id_map)
-    relation_df = relation_df[relation_df['UserID'].notna() & relation_df['MovieID'].notna()]
+    relation_df = relation_df[relation_df['UserID'].notna() & relation_df['MovieID'].notna()][['UserID', 'MovieID']]
 
     emb_size = 128
+    movie_embeddings = torch.randn(len(unique_movies), emb_size)
+    graph = build_homo_graph(relation_df, n_all=len(target_table) + len(unique_movies))
 
-    # For simplicity, we use random embeddings here, but we recommend using models such as BERT for preprocessing.
-    movie_embeddings = torch.randn(n_movies, emb_size).to(device)
+    adj = GCNTransform()(graph).adj.to_sparse_coo()
+    target_table = TabTransformerTransform(out_dim=emb_size, metadata=target_table.metadata)(data=target_table)
 
-    graph = build_homo_graph(
-        relation_df=relation_df[['UserID', 'MovieID']],
-        n_all=n_users + n_movies
-    ).to(device)
-
-    graph_transform = GCNTransform()
-    adj = graph_transform(graph).adj
-
-    table_transform = TabTransformerTransform(out_dim=emb_size, metadata=target_table.metadata)
-    target_table = table_transform(data=target_table).to(device)
-
-    if not adj.is_sparse:
-        adj = adj.to_sparse_coo()
-
-    if task_type.upper() == 'CLF':
-        target_table.y = target_table.y.long().to(device)
-    else:
-        target_table.y = target_table.y.float().to(device)
-
+    target_table.y = target_table.y.to(device)
     target_table.train_mask = train_mask.to(device)
     target_table.val_mask = val_mask.to(device)
     target_table.test_mask = test_mask.to(device)
+    movie_embeddings = movie_embeddings.to(device)
+    adj = adj.to(device)
 
     return target_table, movie_embeddings, adj

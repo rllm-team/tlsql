@@ -46,9 +46,11 @@ def test():
     print(f"Task Type: {predict_sqls.task_type}")
     print(f"Target Table: {predict_sqls.target_table}")
     print(f"WHERE Condition: {predict_sqls.where_condition}")
-    print(f"SQL Condition: {predict_sqls.filter_condition.condition}")
     print("\nGenerated Standard SQL:")
-    print(f"SELECT * FROM {predict_sqls.filter_condition.table} WHERE {predict_sqls.filter_condition.condition}")
+    if predict_sqls.where_condition:
+        print(f"SELECT * FROM {predict_sqls.target_table} WHERE {predict_sqls.where_condition}")
+    else:
+        print(f"SELECT * FROM {predict_sqls.target_table}")
 
 
 def validate():
