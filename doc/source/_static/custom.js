@@ -1,7 +1,12 @@
-// JavaScript to group all attributes into a single box
-// This runs after page load to fix attribute display
+// ============================================
+// MODERNIZED TLSQL DOCUMENTATION JAVASCRIPT
+// ============================================
 
 document.addEventListener('DOMContentLoaded', function() {
+    // Add copy buttons to code blocks
+    addCodeCopyButtons();
+
+    // Original attribute grouping functionality
     // Find all attribute description lists that are NOT already in a container
     const allAttributeLists = document.querySelectorAll('dl.py.attribute');
     const attributeLists = Array.from(allAttributeLists).filter(function(dl) {
@@ -268,3 +273,182 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+
+// ============================================
+// CODE COPY BUTTON FUNCTIONALITY
+// ============================================
+
+function addCodeCopyButtons() {
+    // Find all code blocks
+    const codeBlocks = document.querySelectorAll('pre, .highlight pre, .code-block pre');
+
+    codeBlocks.forEach(function(codeBlock) {
+        // Skip if already has a copy button
+        if (codeBlock.querySelector('.copy-btn')) return;
+
+        // Create copy button container
+        const copyContainer = document.createElement('div');
+        copyContainer.className = 'code-copy-container';
+        copyContainer.style.cssText = `
+            position: relative;
+            margin-bottom: 1rem;
+        `;
+
+        // Create copy button
+        const copyButton = document.createElement('button');
+        copyButton.className = 'copy-btn';
+        copyButton.innerHTML = `
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+            </svg>
+        `;
+        copyButton.title = 'Copy code';
+        copyButton.style.cssText = `
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: var(--color-brand-primary);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 6px 8px;
+            cursor: pointer;
+            font-size: 12px;
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        `;
+
+        // Add hover effect to container
+        copyContainer.addEventListener('mouseenter', function() {
+            copyButton.style.opacity = '1';
+        });
+
+        copyContainer.addEventListener('mouseleave', function() {
+            copyButton.style.opacity = '0';
+        });
+
+        // Add copy functionality
+        copyButton.addEventListener('click', function() {
+            const code = codeBlock.textContent || codeBlock.innerText;
+            navigator.clipboard.writeText(code).then(function() {
+                // Show success feedback
+                const originalHTML = copyButton.innerHTML;
+                copyButton.innerHTML = `
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="20,6 9,17 4,12"></polyline>
+                    </svg>
+                `;
+                copyButton.style.background = 'var(--color-brand-secondary)';
+
+                setTimeout(function() {
+                    copyButton.innerHTML = originalHTML;
+                    copyButton.style.background = 'var(--color-brand-primary)';
+                }, 2000);
+            }).catch(function(err) {
+                console.error('Failed to copy: ', err);
+                // Fallback for older browsers
+                const textArea = document.createElement('textarea');
+                textArea.value = code;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+
+                // Show success feedback
+                const originalHTML = copyButton.innerHTML;
+                copyButton.innerHTML = `
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="20,6 9,17 4,12"></polyline>
+                    </svg>
+                `;
+                copyButton.style.background = 'var(--color-brand-secondary)';
+
+                setTimeout(function() {
+                    copyButton.innerHTML = originalHTML;
+                    copyButton.style.background = 'var(--color-brand-primary)';
+                }, 2000);
+            });
+        });
+
+        // Wrap code block
+        const parent = codeBlock.parentElement;
+        parent.insertBefore(copyContainer, codeBlock);
+        copyContainer.appendChild(codeBlock);
+        copyContainer.appendChild(copyButton);
+
+        // Ensure code block has proper styling
+        codeBlock.style.cssText = `
+            margin: 0;
+            padding: 1rem;
+            background: var(--color-code-background);
+            border-radius: 8px;
+            overflow-x: auto;
+        `;
+    });
+}
+
+// ============================================
+// ENHANCED INTERACTIVE ELEMENTS
+// ============================================
+
+// Add smooth scrolling for anchor links
+document.addEventListener('click', function(e) {
+    if (e.target.matches('a[href^="#"]')) {
+        e.preventDefault();
+        const target = document.querySelector(e.target.getAttribute('href'));
+        if (target) {
+            target.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
+            });
+        }
+    }
+});
+
+// Add back-to-top button
+const backToTopBtn = document.createElement('button');
+backToTopBtn.innerHTML = '↑';
+backToTopBtn.className = 'back-to-top-btn';
+backToTopBtn.style.cssText = `
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    background: var(--tlsql-gradient);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    cursor: pointer;
+    opacity: 0;
+    transition: all 0.3s ease;
+    z-index: 1000;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+`;
+
+backToTopBtn.addEventListener('click', function() {
+    window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+    });
+});
+
+// Show/hide back-to-top button based on scroll position
+window.addEventListener('scroll', function() {
+    if (window.pageYOffset > 300) {
+        backToTopBtn.style.opacity = '1';
+    } else {
+        backToTopBtn.style.opacity = '0';
+    }
+});
+
+document.body.appendChild(backToTopBtn);
