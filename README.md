@@ -1,10 +1,8 @@
 <div align="center">
 
-# <font color="#0194E2">TL</font><font color="#19E1C3">SQL</font>
+# TLSQL: SQL-like API for Table Learning 
 
-###  Design SQL-like API for Table Learning 
-
-*A Python library that converts custom SQL-like statements into standard SQL queries for machine learning workflows*
+*A Python library that converts custom SQL-like statements into standard SQL queries for machine learning workflows on tables in modern data management systems.*
 
 <br/>
 
@@ -19,15 +17,15 @@
 
 ## About
 
-TLSQL is a Python library that converts custom SQL-like statements into standard SQL queries for machine learning workflows. TLSQL supports three types of statements for machine learning workflows. Each statement has a specific syntax and purpose.
+TLSQL simplifies machine learning on structured tables by converting SQL-like statements into standard SQL queries. This allows data scientists and engineers to focus on modeling rather than writing complex SQL or managing datasets manually.
 
-## Dataset Splitting
-
-TLSQL uses three statements to divide your dataset into training, validation, and test sets:
+TLSQL supports three types of statements that map directly to ML workflows:
 
 - **`TRAIN WITH`**: Specifies the training set
 - **`PREDICT VALUE`**: Specifies the test set
 - **`VALIDATE WITH`**: Specifies the validation set
+
+TLSQL works seamlessly with **RDBs, data warehouses, and data lakes**, enabling end-to-end table-based ML workflows.
 
 
 ## TLSQL Syntax
