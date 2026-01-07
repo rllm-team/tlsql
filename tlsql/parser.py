@@ -40,7 +40,7 @@ class Parser:
 
     Attributes:
         tokens: Token list.
-        pos: Current token index.
+        token_pos: Current token index.
         current_token: Token currently being processed.
     """
 
@@ -52,7 +52,7 @@ class Parser:
         """
         lexer = Lexer(text)
         self.tokens = lexer.tokenize()
-        self.pos = 0
+        self.token_pos = 0
         self.current_token = self.tokens[0] if self.tokens else None
 
     def advance(self) -> None:
@@ -60,8 +60,8 @@ class Parser:
 
         Moves to the next token in the stream.
         """
-        self.pos += 1
-        self.current_token = self.tokens[self.pos] if self.pos < len(self.tokens) else None
+        self.token_pos += 1
+        self.current_token = self.tokens[self.token_pos] if self.token_pos < len(self.tokens) else None
 
     def peek(self, offset: int = 1) -> Optional[Token]:
         """Look ahead without consuming token.
@@ -72,8 +72,8 @@ class Parser:
         Returns:
             Token at the specified position or None if out-of-range.
         """
-        peek_pos = self.pos + offset
-        return self.tokens[peek_pos] if peek_pos < len(self.tokens) else None
+        peek_token_pos = self.token_pos + offset
+        return self.tokens[peek_token_pos] if peek_token_pos < len(self.tokens) else None
 
     def expect(self, token_type: TokenType) -> Token:
         """Expect and consume a token type.
@@ -98,8 +98,8 @@ class Parser:
         if self.current_token.type != token_type:
             raise ParseError(
                 f"Expected {token_type.name}, got {self.current_token.type.name}",
-                self.current_token.line,
-                self.current_token.column
+                self.current_token.line_num,
+                self.current_token.col_num
             )
         token = self.current_token
         self.advance()
@@ -148,16 +148,16 @@ class Parser:
         else:
             raise ParseError(
                 f"Expected TRAIN, PREDICT or VALIDATE, got {self.current_token.type.name if self.current_token else 'EOF'}",
-                self.current_token.line if self.current_token else 0,
-                self.current_token.column if self.current_token else 0
+                self.current_token.line_num if self.current_token else 0,
+                self.current_token.col_num if self.current_token else 0
             )
 
         if self.current_token and self.current_token.type != TokenType.EOF:
             if self.current_token.type != TokenType.SEMICOLON:
                 raise ParseError(
                     f"Unexpected token after statement: {self.current_token.type.name}",
-                    self.current_token.line,
-                    self.current_token.column
+                    self.current_token.line_num,
+                    self.current_token.col_num
                 )
             self.advance()
 
@@ -188,8 +188,8 @@ class Parser:
         if self.current_token and self.current_token.type != TokenType.EOF:
             raise ParseError(
                 f"Unexpected token after {statement_type} statement: {self.current_token.type.name}",
-                self.current_token.line,
-                self.current_token.column
+                self.current_token.line_num,
+                self.current_token.col_num
             )
 
         return with_clause, tables, where
@@ -303,8 +303,8 @@ class Parser:
         if self.current_token and self.current_token.type != TokenType.EOF:
             raise ParseError(
                 f"Unexpected token after PREDICT statement: {self.current_token.type.name}",
-                self.current_token.line,
-                self.current_token.column
+                self.current_token.line_num,
+                self.current_token.col_num
             )
 
         return PredictStatement(value=value, from_table=from_table, where=where)
@@ -330,8 +330,8 @@ class Parser:
         else:
             raise ParseError(
                 f"Expected CLF or REG, got {self.current_token.type.name if self.current_token else 'EOF'}",
-                self.current_token.line if self.current_token else 0,
-                self.current_token.column if self.current_token else 0
+                self.current_token.line_num if self.current_token else 0,
+                self.current_token.col_num if self.current_token else 0
             )
 
         self.expect(TokenType.RPAREN)
@@ -490,8 +490,8 @@ class Parser:
 
         raise ParseError(
             f"Unexpected token in expression: {self.current_token.type.name if self.current_token else 'EOF'}",
-            self.current_token.line if self.current_token else 0,
-            self.current_token.column if self.current_token else 0
+            self.current_token.line_num if self.current_token else 0,
+            self.current_token.col_num if self.current_token else 0
         )
 
     def parse_column_expr(self) -> ColumnExpr:

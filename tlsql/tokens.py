@@ -94,15 +94,15 @@ class Token:
     Attributes:
         type: Token type.
         value: String value of token.
-        line: Line number where token is located.
-        column: Column number where token is located.
+        line_num: Line number where token is located.
+        col_num: Column number where token is located.
     """
 
     type: TokenType
     value: str
-    line: int
-    column: int
+    line_num: int
+    col_num: int
 
     def __repr__(self) -> str:
         """Return string representation of token."""
-        return f"Token({self.type.name}, '{self.value}', {self.line}:{self.column})"
+        return f"Token({self.type.name}, '{self.value}', {self.line_num}:{self.col_num})"

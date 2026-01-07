@@ -16,4 +16,4 @@ lexer = Lexer(query)
 tokens = lexer.tokenize()
 
 for token in tokens:
-    print(f"{token.type.name:15s} '{token.value}' at {token.line}:{token.column}")
+    print(f"{token.type.name:15s} '{token.value}' at {token.line_num}:{token.col_num}")

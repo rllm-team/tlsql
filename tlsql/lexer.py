@@ -10,9 +10,9 @@ class Lexer:
 
     Attributes:
         text: Input text.
-        pos: Current character index.
-        line: Current line number.
-        column: Current column number.
+        char_pos: Current character index.
+        line_num: Current line number.
+        col_num: Current column number.
         current_char: Current character.
     """
 
@@ -23,9 +23,9 @@ class Lexer:
             text: Input text.
         """
         self.text = text
-        self.pos = 0
-        self.line = 1
-        self.column = 1
+        self.char_pos = 0
+        self.line_num = 1
+        self.col_num = 1
         self.current_char = self.text[0] if text else None
 
     def advance(self) -> None:
@@ -34,13 +34,13 @@ class Lexer:
         Moves to the next character, updating line/column counters.
         """
         if self.current_char == '\n':
-            self.line += 1
-            self.column = 1
+            self.line_num += 1
+            self.col_num = 1
         else:
-            self.column += 1
+            self.col_num += 1
 
-        self.pos += 1
-        self.current_char = self.text[self.pos] if self.pos < len(self.text) else None
+        self.char_pos += 1
+        self.current_char = self.text[self.char_pos] if self.char_pos < len(self.text) else None
 
     def peek(self, offset: int = 1) -> str:
         """Look ahead without consuming.
@@ -51,8 +51,8 @@ class Lexer:
         Returns:
             Character at position or None if out-of-range.
         """
-        peek_pos = self.pos + offset
-        return self.text[peek_pos] if peek_pos < len(self.text) else None
+        peek_char_pos = self.char_pos + offset
+        return self.text[peek_char_pos] if peek_char_pos < len(self.text) else None
 
     def skip_whitespace(self) -> None:
         """Skip whitespace characters.
@@ -109,7 +109,7 @@ class Lexer:
                 self.advance()
 
         if self.current_char != quote_char:
-            raise LexerError("Unterminated string literal", self.line, self.column)
+            raise LexerError("Unterminated string literal", self.line_num, self.col_num)
 
         self.advance()
         return value
@@ -176,68 +176,68 @@ class Lexer:
                 self.skip_comment()
                 continue
 
-            line, column = self.line, self.column
+            line_num, col_num = self.line_num, self.col_num
 
             if self.current_char in ('"', "'"):
                 value = self.read_string()
-                tokens.append(Token(TokenType.STRING, value, line, column))
+                tokens.append(Token(TokenType.STRING, value, line_num, col_num))
                 continue
 
             if self.current_char.isdigit():
                 value = self.read_number()
-                tokens.append(Token(TokenType.NUMBER, value, line, column))
+                tokens.append(Token(TokenType.NUMBER, value, line_num, col_num))
                 continue
 
             if self.current_char.isalpha() or self.current_char == '_':
                 value = self.read_identifier()
                 token_type = KEYWORDS.get(value.upper(), TokenType.IDENTIFIER)
-                tokens.append(Token(token_type, value, line, column))
+                tokens.append(Token(token_type, value, line_num, col_num))
                 continue
 
             if self.current_char == '>':
                 if self.peek() == '=':
-                    tokens.append(Token(TokenType.GTE, '>=', line, column))
+                    tokens.append(Token(TokenType.GTE, '>=', line_num, col_num))
                     self.advance()
                     self.advance()
                 else:
-                    tokens.append(Token(TokenType.GT, '>', line, column))
+                    tokens.append(Token(TokenType.GT, '>', line_num, col_num))
                     self.advance()
                 continue
 
             if self.current_char == '<':
                 if self.peek() == '=':
-                    tokens.append(Token(TokenType.LTE, '<=', line, column))
+                    tokens.append(Token(TokenType.LTE, '<=', line_num, col_num))
                     self.advance()
                     self.advance()
                 elif self.peek() == '>':
-                    tokens.append(Token(TokenType.NEQ, '<>', line, column))
+                    tokens.append(Token(TokenType.NEQ, '<>', line_num, col_num))
                     self.advance()
                     self.advance()
                 else:
-                    tokens.append(Token(TokenType.LT, '<', line, column))
+                    tokens.append(Token(TokenType.LT, '<', line_num, col_num))
                     self.advance()
                 continue
 
             if self.current_char == '!':
                 if self.peek() == '=':
-                    tokens.append(Token(TokenType.NEQ, '!=', line, column))
+                    tokens.append(Token(TokenType.NEQ, '!=', line_num, col_num))
                     self.advance()
                     self.advance()
                 else:
                     raise LexerError(
                         "Unexpected character '!', did you mean '!='?",
-                        self.line,
-                        self.column
+                        self.line_num,
+                        self.col_num
                     )
                 continue
 
             if self.current_char == '=':
                 if self.peek() == '=':
-                    tokens.append(Token(TokenType.EQ, '==', line, column))
+                    tokens.append(Token(TokenType.EQ, '==', line_num, col_num))
                     self.advance()
                     self.advance()
                 else:
-                    tokens.append(Token(TokenType.EQUALS, '=', line, column))
+                    tokens.append(Token(TokenType.EQUALS, '=', line_num, col_num))
                     self.advance()
                 continue
 
@@ -252,15 +252,15 @@ class Lexer:
 
             if self.current_char in char_tokens:
                 token_type = char_tokens[self.current_char]
-                tokens.append(Token(token_type, self.current_char, line, column))
+                tokens.append(Token(token_type, self.current_char, line_num, col_num))
                 self.advance()
                 continue
 
             raise LexerError(
                 f"Unexpected character '{self.current_char}'",
-                self.line,
-                self.column
+                self.line_num,
+                self.col_num
             )
 
-        tokens.append(Token(TokenType.EOF, '', self.line, self.column))
+        tokens.append(Token(TokenType.EOF, '', self.line_num, self.col_num))
         return tokens

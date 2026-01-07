@@ -5,11 +5,6 @@ sys.path.append("../")
 sys.path.append("../../")
 
 from tlsql import Parser
-from tlsql import (
-    PredictStatement, ValueClause, FromClause, WhereClause,
-    BinaryExpr, UnaryExpr, ColumnExpr, LiteralExpr, BetweenExpr, InExpr,
-    ColumnReference, PredictType
-)
 
 
 def test_predict_syntax():
@@ -50,6 +45,7 @@ def test_predict_syntax():
         print(f"\nParse failed: {e}")
         import traceback
         traceback.print_exc()
+
 
 def test_train_syntax():
     """Test TRAIN USING statement"""
@@ -132,8 +128,6 @@ def test_validate_syntax():
         print(f"\nParse failed: {e}")
         import traceback
         traceback.print_exc()
-
-
 
 
 if __name__ == "__main__":

@@ -46,22 +46,21 @@ def test_predict_basic():
             ast = parser.parse()
 
             if not ast.predict:
-                print("  [FAILED] Not a PREDICT statement")
+                print(" Not a PREDICT statement")
                 continue
 
             predict = ast.predict
-            print("  [SUCCESS] Parsed successfully")
             print(f"  Target: {predict.value.target.table}.{predict.value.target.column}")
             print(f"  Task type: {predict.value.predict_type.type_name}")
             print(f"  Table: {predict.from_table.table}")
             print(f"  Has WHERE: {predict.where is not None}")
 
             generator = SQLGenerator()
-            filter_cond = generator.generate_predict_filter(predict)
-            print(f"  Generated condition: {filter_cond.condition}")
+            result = generator.generate_with_metadata(ast)
+            print(f"  Generated condition: {result.where_condition or 'None'}")
 
         except Exception as e:
-            print(f"  [FAILED] {e}")
+            print(f"{e}")
             import traceback
             traceback.print_exc()
 
@@ -132,20 +131,20 @@ def test_predict_where_conditions():
             ast = parser.parse()
 
             if not ast.predict:
-                print("  [FAILED] Not a PREDICT statement")
+                print(" Not a PREDICT statement")
                 continue
 
             predict = ast.predict
 
             # Test SQL generation
             generator = SQLGenerator()
-            filter_cond = generator.generate_predict_filter(predict)
+            result = generator.generate_with_metadata(ast)
 
-            print("  [SUCCESS] Parsed and generated")
-            print(f"  SQL Condition: {filter_cond.condition}")
+            print("Parsed and generated")
+            print(f"  SQL Condition: {result.where_condition or 'None'}")
 
         except Exception as e:
-            print(f"  [FAILED] {e}")
+            print(f" {e}")
             import traceback
             traceback.print_exc()
 
@@ -176,13 +175,13 @@ def test_predict_column_references():
             ast = parser.parse()
 
             if not ast.predict:
-                print("  [FAILED] Not a PREDICT statement")
+                print(" Not a PREDICT statement")
                 continue
 
             predict = ast.predict
             target = predict.value.target
 
-            print("  [SUCCESS] Parsed successfully")
+            print("Parsed successfully")
             target_table_str = (
                 target.table if target.table else 'None (defaults to FROM table)'
             )
@@ -191,11 +190,11 @@ def test_predict_column_references():
 
             # Test SQL generation
             generator = SQLGenerator()
-            filter_cond = generator.generate_predict_filter(predict)
-            print(f"  Generated condition: {filter_cond.condition}")
+            result = generator.generate_with_metadata(ast)
+            print(f"  Generated condition: {result.where_condition or 'None'}")
 
         except Exception as e:
-            print(f"  [FAILED] {e}")
+            print(f" {e}")
             import traceback
             traceback.print_exc()
 
@@ -223,19 +222,19 @@ def test_predict_task_types():
             ast = parser.parse()
 
             if not ast.predict:
-                print("  [FAILED] Not a PREDICT statement")
+                print(" Not a PREDICT statement")
                 continue
 
             predict = ast.predict
             predict_type = predict.value.predict_type
 
-            print("  [SUCCESS] Parsed successfully")
+            print("Parsed successfully")
             print(f"  Task type: {predict_type.type_name}")
             print(f"  Is classifier: {predict_type.is_classifier}")
             print(f"  Is regressor: {predict_type.is_regressor}")
 
         except Exception as e:
-            print(f"  [FAILED] {e}")
+            print(f" {e}")
             import traceback
             traceback.print_exc()
 
@@ -291,7 +290,7 @@ def test_predict_edge_cases():
 
             if not ast.predict:
                 if test_case['should_pass']:
-                    print("  [FAILED] Not a PREDICT statement")
+                    print(" Not a PREDICT statement")
                 else:
                     print("  [EXPECTED FAIL] Correctly rejected")
                 continue
@@ -304,14 +303,14 @@ def test_predict_edge_cases():
 
             # Test SQL generation
             generator = SQLGenerator()
-            filter_cond = generator.generate_predict_filter(predict)
+            result = generator.generate_with_metadata(ast)
 
-            print("  [SUCCESS] Parsed and generated")
-            print(f"  Condition: {filter_cond.condition}")
+            print("Parsed and generated")
+            print(f"  Condition: {result.where_condition or 'None'}")
 
         except Exception as e:
             if test_case['should_pass']:
-                print(f"  [FAILED] {e}")
+                print(f" {e}")
                 import traceback
                 traceback.print_exc()
             else:
