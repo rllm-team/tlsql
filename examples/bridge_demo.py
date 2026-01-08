@@ -74,8 +74,8 @@ def main():
         'host': 'localhost',
         'port': 3306,
         'database': 'tml1m',
-        'username': 'root',
-        'password': 'cfy1007'
+        'username': 'your username',
+        'password': 'your password'
     }
     train_tlsql = """
     TRAIN WITH (users.*, movies.*, ratings.*)
