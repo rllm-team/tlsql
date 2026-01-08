@@ -87,7 +87,9 @@ class SQLGenerator:
             tlsql: TLSQL statement string.
 
         Returns:
-            ConversionResult: Unified result.
+            ConversionResult: Contains statement type, generated SQL statements (sql_list),
+            involved tables, WHERE condition, and for PREDICT statements: target column,
+            task type, and target table.
         """
         parser = Parser(tlsql)
         ast = parser.parse()
