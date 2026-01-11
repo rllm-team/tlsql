@@ -94,7 +94,7 @@ class SQLGenerator:
         parser = Parser(tlsql)
         ast = parser.parse()
         generator = cls()
-        return generator.generate_with_metadata(ast)
+        return generator.build(ast)
 
     def generate(self, statement: Statement):
         """Generate SQL statements or filters.
@@ -117,7 +117,7 @@ class SQLGenerator:
         else:
             raise GenerationError("Unknown statement type")
 
-    def generate_with_metadata(self, statement: Statement) -> ConversionResult:
+    def build(self, statement: Statement) -> ConversionResult:
         """Generate SQL with full metadata.
 
         Args:

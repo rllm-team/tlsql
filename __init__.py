@@ -6,18 +6,9 @@ This package converts three types of custom SQL statements into standard SQL:
 3. VALIDATE WITH - Validation data queries
 
 Usage:
-    Basic usage:
-        >>> import tlsql
-        >>> result = tlsql.convert("PREDICT VALUE(users.Age, CLF) FROM users")
-        >>> print(result.statement_type)
-        'PREDICT'
-
-    Advanced usage:
-        >>> from tlsql import Parser, SQLGenerator
-        >>> parser = Parser("PREDICT VALUE(users.Age, CLF) FROM users")
-        >>> ast = parser.parse()
-        >>> generator = SQLGenerator()
-        >>> result = generator.generate_with_metadata(ast)
+    >>> from tlsql import convert
+    >>> result = convert("PREDICT VALUE(users.Age, CLF) FROM users")
+    >>> print(result.sql_list)  # List of GeneratedSQL objects
 """
 
 __version__ = "0.1.0"
@@ -45,7 +36,7 @@ def convert(tlsql: str):
 
     # Generate SQL with metadata
     generator = SQLGenerator()
-    return generator.generate_with_metadata(ast)
+    return generator.build(ast)
 
 
 # Tokens
