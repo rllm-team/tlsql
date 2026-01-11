@@ -7,7 +7,7 @@ sys.path.append("./")
 sys.path.append("../")
 sys.path.append("../../")
 
-from tlsql import Parser, SQLGenerator
+from tlsql import Parser, convert
 
 
 def print_test_header(test_name: str):
@@ -55,8 +55,7 @@ def test_predict_basic():
             print(f"  Table: {predict.from_table.table}")
             print(f"  Has WHERE: {predict.where is not None}")
 
-            generator = SQLGenerator()
-            result = generator.generate_with_metadata(ast)
+            result = convert(test_case['sql'])
             print(f"  Generated condition: {result.where_condition or 'None'}")
 
         except Exception as e:
@@ -134,11 +133,8 @@ def test_predict_where_conditions():
                 print(" Not a PREDICT statement")
                 continue
 
-            predict = ast.predict
-
             # Test SQL generation
-            generator = SQLGenerator()
-            result = generator.generate_with_metadata(ast)
+            result = convert(test_case['sql'])
 
             print("Parsed and generated")
             print(f"  SQL Condition: {result.where_condition or 'None'}")
@@ -189,8 +185,7 @@ def test_predict_column_references():
             print(f"  Target column: {target.column}")
 
             # Test SQL generation
-            generator = SQLGenerator()
-            result = generator.generate_with_metadata(ast)
+            result = convert(test_case['sql'])
             print(f"  Generated condition: {result.where_condition or 'None'}")
 
         except Exception as e:
@@ -299,11 +294,8 @@ def test_predict_edge_cases():
                 print("  [UNEXPECTED PASS] Should have failed but passed")
                 continue
 
-            predict = ast.predict
-
             # Test SQL generation
-            generator = SQLGenerator()
-            result = generator.generate_with_metadata(ast)
+            result = convert(test_case['sql'])
 
             print("Parsed and generated")
             print(f"  Condition: {result.where_condition or 'None'}")

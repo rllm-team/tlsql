@@ -181,7 +181,7 @@ class SQLGenerator:
         """
         # Generate SQL list for PREDICT statement
         sql_list = self.generate_predict_sql(predict)
-        
+
         if not sql_list:
             raise GenerationError("PREDICT statement failed to generate SQL list")
 

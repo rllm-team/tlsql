@@ -50,7 +50,6 @@ def test():
     for i, gen_sql in enumerate(predict_sqls.sql_list, 1):
         print(f"{i}. Table: {gen_sql.table}")
         print(f"   SQL: {gen_sql.sql}")
-        
 
 
 def validate():

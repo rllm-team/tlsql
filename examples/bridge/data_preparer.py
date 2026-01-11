@@ -1,6 +1,6 @@
 """BRIDGE pipeline utilities for preparing data and training models."""
 
-from typing import Dict, Any, Optional
+from typing import Dict, Optional
 
 import torch
 import pandas as pd
@@ -21,8 +21,8 @@ def prepare_bridge_data(
 ):
     """Prepare data for BRIDGE model"""
     emb_size = 128  # Embedding dimension
-    target_pkey = 'UserID' #primary key
-    
+    target_pkey = 'UserID'  # primary key
+
     table_name, col_name = target_column.split('.')
 
     train_df = train_data[table_name]
@@ -39,7 +39,7 @@ def prepare_bridge_data(
     n = len(target_table)
     train_len, val_len = len(train_df), len(validate_df) if validate_df is not None else 0
     test_len = len(test_df) if test_df is not None else 0
-    
+
     train_mask = torch.cat([
         torch.ones(train_len, dtype=torch.bool),
         torch.zeros(val_len + test_len, dtype=torch.bool)

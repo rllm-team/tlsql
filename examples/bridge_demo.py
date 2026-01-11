@@ -60,7 +60,7 @@ def train_bridge_model(target_table, non_table_embeddings, adj, emb_size, train_
             test_acc = tmp_test_acc
 
         print(f"BRIDGE Epoch: [{epoch}/{epochs}] Train Loss: {loss.item():.4f} Train Acc: {train_acc:.4f} Val Acc: {val_acc:.4f}, Test Acc: {tmp_test_acc:.4f}")
-    
+
     print(f"BRIDGE Final - Train Acc: {train_acc:.4f}, Val Acc: {best_val_acc:.4f}, Test Acc: {test_acc:.4f}")
     return train_acc, best_val_acc, test_acc
 
@@ -126,7 +126,7 @@ def main():
 
     # Final comparison
     print(f"\n{'Method':<20} {'Train Acc':<15} {'Val Acc':<15} {'Test Acc':<15}")
-    print(f"{'='*65}")
+    print(f"{'=' * 65}")
     print(f"{'Random Guess':<20} {random_train_acc:<15.4f} {random_val_acc:<15.4f} {random_test_acc:<15.4f}")
     print(f"{'MLP':<20} {mlp_train_acc:<15.4f} {mlp_val_acc:<15.4f} {mlp_test_acc:<15.4f}")
     print(f"{'BRIDGE':<20} {bridge_train_acc:<15.4f} {bridge_val_acc:<15.4f} {bridge_test_acc:<15.4f}")

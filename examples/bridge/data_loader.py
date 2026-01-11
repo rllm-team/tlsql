@@ -1,6 +1,5 @@
 """Data Loading Utilities for TLSQL Statements"""
 
-import torch
 import tlsql
 from tlsql.examples.bridge.data_preparer import prepare_bridge_data
 from tlsql.examples.executor.db_executor import DatabaseExecutor, DatabaseConfig
@@ -46,4 +45,4 @@ def prepare_data_from_tlsql(train_tlsql, validate_tlsql, predict_tlsql, db_confi
         train_data, validate_data, test_df, predict_sqls.target_column, device
     )
 
-    return target_table, non_table_embeddings, adj, non_table_embeddings.size(1) 
+    return target_table, non_table_embeddings, adj, non_table_embeddings.size(1)
