@@ -12,7 +12,7 @@ class TLSQLError(Exception):
         super().__init__(self._format_message())
 
     def _format_message(self) -> str:
-        """Format message."""
+        """Format error message with optional location information."""
         if self.line_num is not None and self.col_num is not None:
             return f"Line {self.line_num}, Column {self.col_num}: {self.message}"
         elif self.line_num is not None:

@@ -1,4 +1,12 @@
-"""Core components"""
+"""TLSQL Core components.
+This module provides the core components for parsing and converting TLSQL statements
+to standard SQL.
+
+Main components:
+    - Lexer: Tokenizes TLSQL input text
+    - Parser: Parses tokens into Abstract Syntax Tree (AST)
+    - SQLGenerator: Converts AST to standard SQL statements
+"""
 
 from .tokens import Token, TokenType
 from .lexer import Lexer

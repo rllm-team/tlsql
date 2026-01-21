@@ -12,7 +12,7 @@ from typing import Optional, List, Any
 
 @dataclass
 class ASTNode:
-    """Base class for all AST nodes.All AST nodes inherit from this class, used for type identification and unified interface.
+    """Base class for all AST nodes. All AST nodes inherit from this class, used for type identification and unified interface.
     """
     pass
 
@@ -89,6 +89,9 @@ class BinaryExpr(Expr):
 @dataclass
 class UnaryExpr(Expr):
     """Unary expression.
+    
+    Supported operator:
+        NOT:Logical negation
 
     Attributes:
         operator: Operator.
@@ -143,7 +146,7 @@ class WhereClause(ASTNode):
 
 @dataclass
 class ColumnSelector(ASTNode):
-    """Column selector in USING clause.
+    """Column selector in WITH clause.
 
     Attributes:
         table: Table name.
@@ -317,7 +320,7 @@ class PredictStatement(ASTNode):
 
 @dataclass
 class Statement(ASTNode):
-    """Contains TRAIN/PREDICT/validate statements.
+    """Contains TRAIN/PREDICT/VALIDATE statements.
 
     Attributes:
         train: TRAIN statement.

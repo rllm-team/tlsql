@@ -74,7 +74,7 @@ class ConversionResult:
 
 
 class SQLGenerator:
-    """SQL generator for TLSQL statements."""
+    """SQL generator that converts TLSQL AST nodes to standard SQL statements."""
 
     def __init__(self):
         pass
@@ -87,9 +87,7 @@ class SQLGenerator:
             tlsql: TLSQL statement string.
 
         Returns:
-            ConversionResult: Contains statement type, generated SQL statements (sql_list),
-            involved tables, WHERE condition, and for PREDICT statements: target column,
-            task type, and target table.
+            ConversionResult object containing SQL and other meta information.
         """
         parser = Parser(tlsql)
         ast = parser.parse()
@@ -103,7 +101,10 @@ class SQLGenerator:
             statement: Parsed Statement node.
 
         Returns:
-            TRAIN/VALIDATE/PREDICT: List[GeneratedSQL] per table.
+            List of GeneratedSQL objects, one per table. Each object contains:
+                - table: Table name
+                - sql: Complete SELECT statement
+                - columns: List of selected columns (or ['*'] for all columns)
 
         Raises:
             GenerationError: Unknown statement type.
@@ -252,7 +253,10 @@ class SQLGenerator:
         return table_columns
 
     def _split_where_by_table(self, where: WhereClause) -> Dict[str, str]:
-        """Split WHERE conditions per table."""
+        """Split WHERE conditions per table.
+        Splits WHERE clause conditions into table-specific conditions by extracting
+        AND-connected subconditions and grouping them by table.
+        """
         conditions = self._extract_and_conditions(where.condition)
 
         table_conditions = {}
@@ -322,10 +326,6 @@ class SQLGenerator:
         Returns:
             List[GeneratedSQL]: A list containing a single GeneratedSQL object
             with the complete SELECT statement for test data loading.
-            Format: SELECT * FROM table [WHERE condition].
-
-        Example:
-            PREDICT VALUE users.Age AS CLF FROM users WHERE users.Gender='F'
             Returns: [GeneratedSQL(table='users', sql='SELECT * FROM users WHERE Gender = \'F\'', columns=['*'])].
         """
         table = predict.from_table.table

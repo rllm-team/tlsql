@@ -87,7 +87,8 @@ class Parser:
             Matching token object.
 
         Raises:
-            ParseError: Raised when token type mismatches expectation or EOF reached.
+            ParseError: If current token type doesn't match expectation, or if
+            EOF is reached.
         """
         if self.current_token is None:
             raise ParseError(
