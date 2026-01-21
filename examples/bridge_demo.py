@@ -77,28 +77,28 @@ def main():
         'username': 'your username',
         'password': 'your password'
     }
-    train_tlsql = """
+    train_query = """
     TRAIN WITH (users.*, movies.*, ratings.*)
     FROM users, movies, ratings
     WHERE users.Gender='M' and users.userID BETWEEN 1 AND 3000
     """
 
-    validate_tlsql = """
+    validate_query = """
     VALIDATE WITH (users.*)
     FROM users
     WHERE users.Gender='M' and users.userID>3000
     """
 
-    predict_tlsql = """
+    predict_query = """
     PREDICT VALUE(users.Age, CLF)
     FROM users
     WHERE users.Gender='F'
     """
 
     target_table, non_table_embeddings, adj, emb_size = prepare_data_from_tlsql(
-        train_tlsql=train_tlsql,
-        validate_tlsql=validate_tlsql,
-        predict_tlsql=predict_tlsql,
+        train_query=train_query,
+        validate_query=validate_query,
+        predict_query=predict_query,
         db_config=db_config,
         device=device
     )

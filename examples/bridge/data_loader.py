@@ -17,22 +17,22 @@ def _load_data(executor, sqls):
     return data_dict
 
 
-def prepare_data_from_tlsql(train_tlsql, validate_tlsql, predict_tlsql, db_config, device):
+def prepare_data_from_tlsql(train_query, validate_query, predict_query, db_config, device):
     """Get data and prepare in format required by bridge model.
 
     Args:
-        train_tlsql: TRAIN TLSQL statement
-        validate_tlsql: VALIDATE TLSQL statement
-        predict_tlsql: PREDICT TLSQL statement
+        train_query: TRAIN TLSQL statement
+        validate_query: VALIDATE TLSQL statement
+        predict_query: PREDICT TLSQL statement
         db_config: Database configuration dictionary
         device: Device (CPU/GPU)
 
     Returns:
         tuple: (target_table, non_table_embeddings, adj, emb_size)
     """
-    predict_sqls = tlsql.convert(predict_tlsql)
-    train_sqls = tlsql.convert(train_tlsql)
-    validate_sqls = tlsql.convert(validate_tlsql)
+    predict_sqls = tlsql.convert(predict_query)
+    train_sqls = tlsql.convert(train_query)
+    validate_sqls = tlsql.convert(validate_query)
 
     executor = DatabaseExecutor(DatabaseConfig(**db_config))
     with executor:

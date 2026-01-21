@@ -12,14 +12,14 @@ The demo uses the TML1M dataset with three relational tables: users, movies, and
 def level_I():
     """Level I: PREDICT - REQUIRED"""
     print("Level I: Only PREDICT")
-    predict_tlsql = """
+    predict_query = """
     PREDICT VALUE(users.Age, CLF)
     FROM users
     WHERE users.Gender='F'
     """
 
     print("PREDICT:")
-    print(f"    {predict_tlsql.strip()}")
+    print(f"    {predict_query.strip()}")
     print("\nTRAIN: Not specified, default to using all data except PREDICT data")
     print("\nVALIDATE: Not specified, default to using k=5 fold cross validation on train data")
     print()
@@ -29,22 +29,22 @@ def level_II():
     """Level II: TRAIN - OPTIONAL, defaults to all data except PREDICT"""
     print("Level II: PREDICT and TRAIN")
 
-    predict_tlsql = """
+    predict_query = """
     PREDICT VALUE(users.Age, CLF)
     FROM users
     WHERE users.Gender='F'
     """
 
-    train_tlsql = """
+    train_query = """
     TRAIN WITH (users.*, movies.*, ratings.*)
     FROM users, movies, ratings
     WHERE users.Gender='M' and users.userID BETWEEN 1 AND 3000
     """
 
     print("PREDICT:")
-    print(f"    {predict_tlsql.strip()}")
+    print(f"    {predict_query.strip()}")
     print("\nTRAIN:")
-    print(f"    {train_tlsql.strip()}")
+    print(f"    {train_query.strip()}")
     print("\nVALIDATE: Not specified, default to using k=5 fold cross validation on train data")
     print()
 
@@ -53,30 +53,30 @@ def level_III():
     """Level III: VALIDATE - OPTIONAL, defaults to k=5 fold cross validation"""
     print("Level III: PREDICT, TRAIN and VALIDATE")
 
-    predict_tlsql = """
+    predict_query = """
     PREDICT VALUE(users.Age, CLF)
     FROM users
     WHERE users.Gender='F'
     """
 
-    train_tlsql = """
+    train_query = """
     TRAIN WITH (users.*, movies.*, ratings.*)
     FROM users, movies, ratings
     WHERE users.Gender='M' and users.userID BETWEEN 1 AND 3000
     """
 
-    validate_tlsql = """
+    validate_query = """
     VALIDATE WITH (users.*)
     FROM users
     WHERE users.Gender='M' and users.userID>3000
     """
 
     print("PREDICT:")
-    print(f"    {predict_tlsql.strip()}")
+    print(f"    {predict_query.strip()}")
     print("\nTRAIN:")
-    print(f"    {train_tlsql.strip()}")
+    print(f"    {train_query.strip()}")
     print("\nVALIDATE:")
-    print(f"    {validate_tlsql.strip()}")
+    print(f"    {validate_query.strip()}")
     print()
 
 
