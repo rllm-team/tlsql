@@ -40,7 +40,7 @@ def prepare_data_from_tlsql(train_query, validate_query, predict_query, db_confi
         validate_data = _load_data(executor, validate_sqls)
         test_data = _load_data(executor, predict_sqls)
 
-    test_df = list(test_data.values())[0] if test_data else None
+    test_df = list(test_data.values())[0]
     target_table, non_table_embeddings, adj = prepare_bridge_data(
         train_data, validate_data, test_df, predict_sqls.target_column, device
     )
