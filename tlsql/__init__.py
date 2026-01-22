@@ -36,6 +36,20 @@ from .ast_nodes import (
 from .exceptions import TLSQLError, LexerError, ParseError, GenerationError
 from .sql_generator import SQLGenerator, GeneratedSQL, ConversionResult
 
+def convert(tlsql: str):
+    """Convert TLSQL statement to standard SQL.
+    
+    This function is re-exported from the parent tlsql module.
+    Uses lazy import to avoid circular dependency.
+    """
+    import sys
+   
+    parent_module = sys.modules.get('tlsql')
+    if parent_module is None:
+        import importlib
+        parent_module = importlib.import_module('tlsql')
+    return parent_module.convert(tlsql)
+
 __all__ = [
     # Tokens
     "Token",
@@ -73,4 +87,6 @@ __all__ = [
     # SQL generator results
     "GeneratedSQL",
     "ConversionResult",
+    # Top-level API
+    "convert",
 ]
