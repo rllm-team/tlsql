@@ -37,7 +37,7 @@ TLSQL works seamlessly with **RDBs, data warehouses, and data lakes**, enabling 
 
 ### 1. PREDICT VALUE Statement
 
-The `PREDICT VALUE` statement specifies the target column for prediction and the task type (classification or regression). This statement defines the test set - the data for which you want to make predictions. The `WHERE` clause in this statement filters which rows are included in the test set.
+The `PREDICT` statement specifies the target column for prediction and the task type (classification or regression). This statement defines the test set - the data for which you want to make predictions. The `WHERE` clause in this statement filters which rows are included in the test set.
 
 #### Syntax
 
@@ -62,7 +62,7 @@ WHERE users.Gender='F'
 
 ### 2. TRAIN WITH Statement
 
-The `TRAIN WITH` statement specifies which columns and tables to use for training data, along with optional filtering conditions. This statement defines the dataset used to train your machine learning model.
+The `TRAIN` statement specifies which columns and tables to use for training data, along with optional filtering conditions. This statement defines the dataset used to train your machine learning model.
 
 #### Syntax
 
@@ -82,7 +82,7 @@ WHERE users.Gender='M' AND users.userID<3000
 
 ### 3. VALIDATE WITH Statement
 
-The `VALIDATE WITH` statement is used to specify the validation data, and its syntax is similar to that of `PREDICT`, with only slight differences in the beginning part.
+The `VALIDATE` statement is used to specify the validation data, and its syntax is similar to that of `PREDICT`, with only slight differences in the beginning part.
 
 #### Syntax
 
