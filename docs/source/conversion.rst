@@ -85,9 +85,9 @@ The conversion process consists of four main steps:
 
 4. **Result Assembly**
    
-   **Used Class:** :class:`ConversionResult`
+   **Used Classes:** :class:`ConversionResult` and :class:`StatementResult`
    
-   The final standard SQL statement is constructed and wrapped in a ``ConversionResult`` object, which contains all extracted metadata.
+   The final standard SQL statement is constructed and wrapped in a ``StatementResult`` object, which contains all extracted metadata for a single statement. For workflow conversions, multiple ``StatementResult`` objects are wrapped in a ``ConversionResult`` object.
 
 **Standard SQL:**
 
@@ -99,9 +99,19 @@ The conversion process consists of four main steps:
 
 The conversion returns a ``ConversionResult`` object containing:
 
-- ``statement_type``: ``'PREDICT'``
-- ``target_column``: ``'users.Age'``
-- ``task_type``: ``'CLF'``
-- ``target_table``: ``'users'``
-- ``where_condition``: ``"Gender = 'F'"``
+- ``predict_result``: A ``StatementResult`` object with:
+  - ``statement_type``: ``'PREDICT'``
+  - ``target_column``: ``'users.Age'``
+  - ``task_type``: ``'CLF'``
+  - ``target_table``: ``'users'``
+  - ``where_condition``: ``"Gender = 'F'"``
+  - ``sql_list``: List of ``GeneratedSQL`` objects
+- ``train_result``: A ``StatementResult`` object for TRAIN statement
+- ``validate_result``: An optional ``StatementResult`` object for VALIDATE statement (None if not provided)
+
+You can access these results using the shortcut properties:
+
+- ``result.predict.sql`` - Get PREDICT SQL string
+- ``result.train.sql`` - Get TRAIN SQL string  
+- ``result.validate.sql`` - Get VALIDATE SQL string (returns None if not provided)
 

@@ -2,6 +2,7 @@ TLSQL Documentation
 ===================
 
 TLSQL is a system designed to simplify machine learning workflows on structured tabular data. It translates SQL-like statements into standard SQL queries and structured learning task descriptions, enabling data scientists and engineers to focus on model development instead of writing complex SQL or manually managing datasets.
+
 TLSQL works seamlessly with **RDBs, data warehouses, and data lakes**, enabling end-to-end table-based ML workflows.
 
 
@@ -29,15 +30,13 @@ Quick Start
 
     import tlsql
     
-    # Workflow mode: PREDICT only (auto-generates TRAIN)
     result = tlsql.convert(
         predict_query="PREDICT VALUE(users.Age, CLF) FROM users WHERE users.Gender='F'"
     )
     print(result.predict.statement_type)  # 'PREDICT'
     print(result.predict.target_column)   # 'users.Age'
     print(result.predict.task_type)       # 'CLF'
-    print(result.train.sql)                # Auto-generated TRAIN SQL
-
+    
 Components
 ----------
 

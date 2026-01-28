@@ -82,7 +82,7 @@ WHERE users.Gender='M' AND users.userID<3000
 
 ### 3. VALIDATE WITH Statement
 
-The `VALIDATE WITH` statement specifies validation data with the same syntax as `TRAIN WITH`. This statement defines the validation set used for model selection. If omitted, `validate_result` will be `None`.
+The `VALIDATE WITH` statement specifies validation data with the same syntax as `TRAIN WITH`. This statement defines the validation set used for model selection. If omitted, `result.validate_result` will be `None`.
 
 #### Syntax
 
@@ -130,14 +130,13 @@ This will install TLSQL in development mode, allowing you to make changes to the
 ```python
 import tlsql
 
-# Workflow mode: PREDICT only (auto-generates TRAIN)
+
 result = tlsql.convert(
     predict_query="PREDICT VALUE(users.Age, CLF) FROM users WHERE users.Gender='F'"
 )
 print(result.predict.statement_type)  # 'PREDICT'
 print(result.predict.target_column)   # 'users.Age'
 print(result.predict.task_type)       # 'CLF'
-print(result.train.sql)                # Auto-generated TRAIN SQL
 ```
 
 ### Examples

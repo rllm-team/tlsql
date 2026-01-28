@@ -34,7 +34,7 @@ from .ast_nodes import (
     Statement,
 )
 from .exceptions import TLSQLError, LexerError, ParseError, GenerationError
-from .sql_generator import SQLGenerator, GeneratedSQL, ConversionResult
+from .sql_generator import SQLGenerator, GeneratedSQL, ConversionResult, StatementResult
 from typing import Optional
 
 
@@ -47,7 +47,9 @@ def convert(predict_query: str, train_query: Optional[str] = None, validate_quer
         validate_query: VALIDATE TLSQL statement (optional).
 
     Returns:
-        ConversionResult: Contains predict_result, train_result, and validate_result.
+        ConversionResult: Contains predict_result (StatementResult), train_result (StatementResult), 
+        and validate_result (Optional[StatementResult]). Use shortcut properties result.predict, 
+        result.train, and result.validate to access individual statement results.
     """
     import sys
     parent_module = sys.modules.get('tlsql')
@@ -97,6 +99,7 @@ __all__ = [
     # SQL generator results
     "GeneratedSQL",
     "ConversionResult",
+    "StatementResult",
     # Top-level API
     "convert",
 ]

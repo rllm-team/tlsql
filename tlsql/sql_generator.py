@@ -5,7 +5,7 @@ Converts TLSQL AST into standard SQL statements or filtering conditions.
 """
 
 from dataclasses import dataclass, field
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Union
 from .ast_nodes import (
     Statement,
     TrainStatement,
@@ -58,12 +58,11 @@ _NONE_RESULT = _NoneResult()
 
 
 @dataclass
-class ConversionResult:
-    """Result from TLSQL conversion.
+class StatementResult:
+    """Result for a single TLSQL statement (PREDICT/TRAIN/VALIDATE).
 
-    This class represents both individual statement results and workflow results.
-    For individual statements (PREDICT, TRAIN, VALIDATE), use statement_type and sql_list.
-    For workflow results, use predict_result, train_result, and validate_result.
+    This class represents the result of converting a single TLSQL statement
+    (PREDICT, TRAIN, or VALIDATE) into standard SQL.
 
     Attributes:
         statement_type: Type of statement ('PREDICT', 'TRAIN', or 'VALIDATE').
@@ -73,20 +72,14 @@ class ConversionResult:
         target_table: Target table name.
         tables: List of all tables involved in the statement.
         where_condition: WHERE condition as SQL string.
-        predict_result: ConversionResult for PREDICT statement (workflow mode).
-        train_result: ConversionResult for TRAIN statement (workflow mode).
-        validate_result: ConversionResult for VALIDATE statement (workflow mode).
     """
-    statement_type: str = ""
-    sql_list: Optional[List[GeneratedSQL]] = None
+    statement_type: str
+    sql_list: List[GeneratedSQL]
     target_column: Optional[str] = None
     task_type: Optional[str] = None
     target_table: Optional[str] = None
     tables: List[str] = field(default_factory=list)
     where_condition: Optional[str] = None
-    predict_result: Optional['ConversionResult'] = None  # type: ignore
-    train_result: Optional['ConversionResult'] = None  # type: ignore
-    validate_result: Optional['ConversionResult'] = None  # type: ignore
 
     @property
     def is_train(self) -> bool:
@@ -102,30 +95,6 @@ class ConversionResult:
     def is_predict(self) -> bool:
         """Check if this is a PREDICT statement result."""
         return self.statement_type == 'PREDICT'
-
-    @property
-    def is_workflow(self) -> bool:
-        """Check if this is a workflow result (contains multiple statement results)."""
-        return self.predict_result is not None
-
-    @property
-    def predict(self) -> 'ConversionResult':
-        """Shortcut to predict_result for workflow results."""
-        return self.predict_result if self.predict_result else _NONE_RESULT
-
-    @property
-    def train(self) -> 'ConversionResult':
-        """Shortcut to train_result for workflow results."""
-        return self.train_result if self.train_result else _NONE_RESULT
-
-    @property
-    def validate(self) -> 'ConversionResult':
-        """Shortcut to validate_result for workflow results.
-
-        Returns _NONE_RESULT if validate_result is None, allowing
-        result.validate.sql to return None instead of raising AttributeError.
-        """
-        return self.validate_result if self.validate_result else _NONE_RESULT
 
     @property
     def sql(self) -> Optional[str]:
@@ -180,6 +149,41 @@ class ConversionResult:
         return "\n".join(lines)
 
 
+@dataclass
+class ConversionResult:
+    """Result from TLSQL workflow conversion.
+
+    This class represents the result of converting a TLSQL workflow (PREDICT, TRAIN, VALIDATE)
+    into standard SQL. It contains individual statement results for each component.
+
+    Attributes:
+        predict_result: StatementResult for PREDICT statement (required).
+        train_result: StatementResult for TRAIN statement (required).
+        validate_result: StatementResult for VALIDATE statement (optional).
+    """
+    predict_result: StatementResult
+    train_result: StatementResult
+    validate_result: Optional[StatementResult] = None
+
+    @property
+    def predict(self) -> StatementResult:
+        """Shortcut to predict_result for workflow results."""
+        return self.predict_result
+
+    @property
+    def train(self) -> StatementResult:
+        """Shortcut to train_result for workflow results."""
+        return self.train_result
+
+    @property
+    def validate(self) -> Union[StatementResult, _NoneResult]:
+        """Shortcut to validate_result for workflow results.
+
+        Returns _NONE_RESULT if validate_result is None.
+        """
+        return self.validate_result if self.validate_result else _NONE_RESULT
+
+
 class SQLGenerator:
     """SQL generator that converts TLSQL AST nodes to standard SQL statements."""
 
@@ -187,17 +191,14 @@ class SQLGenerator:
         """Initialize SQL generator."""
 
     @classmethod
-    def convert_query(cls, tlsql: str) -> ConversionResult:
+    def convert_query(cls, tlsql: str) -> StatementResult:
         """Convert a single TLSQL query to standard SQL.
-
-        This is an internal method for converting individual TLSQL queries.
-        For workflow conversion, use the top-level tlsql.convert() function.
 
         Args:
             tlsql: TLSQL query string.
 
         Returns:
-            ConversionResult object containing SQL and other meta information.
+            StatementResult object containing SQL and other meta information.
         """
         parser = Parser(tlsql)
         ast = parser.parse()
@@ -228,14 +229,14 @@ class SQLGenerator:
         else:
             raise GenerationError("Unknown statement type")
 
-    def build(self, statement: Statement) -> ConversionResult:
+    def build(self, statement: Statement) -> StatementResult:
         """Generate SQL with full metadata.
 
         Args:
             statement: Parsed Statement node.
 
         Returns:
-            ConversionResult: Unified result with all metadata.
+            StatementResult: Unified result with all metadata.
 
         Raises:
             GenerationError: Unknown statement type.
@@ -249,8 +250,8 @@ class SQLGenerator:
         else:
             raise GenerationError("Unknown statement type")
 
-    def _generate_train_result(self, train: TrainStatement) -> ConversionResult:
-        """Generate ConversionResult for TRAIN statement."""
+    def _generate_train_result(self, train: TrainStatement) -> StatementResult:
+        """Generate StatementResult for TRAIN statement."""
         sql_list = self.generate_train_sql(train)
         tables = train.tables.tables
         where_condition = None
@@ -260,15 +261,15 @@ class SQLGenerator:
                 include_table_prefix=False
             )
 
-        return ConversionResult(
+        return StatementResult(
             statement_type='TRAIN',
             sql_list=sql_list,
             tables=tables,
             where_condition=where_condition
         )
 
-    def _generate_validate_result(self, validate: ValidateStatement) -> ConversionResult:
-        """Generate ConversionResult for VALIDATE statement."""
+    def _generate_validate_result(self, validate: ValidateStatement) -> StatementResult:
+        """Generate StatementResult for VALIDATE statement."""
         sql_list = self.generate_validate_sql(validate)
         tables = validate.tables.tables
         where_condition = None
@@ -278,16 +279,16 @@ class SQLGenerator:
                 include_table_prefix=False
             )
 
-        return ConversionResult(
+        return StatementResult(
             statement_type='VALIDATE',
             sql_list=sql_list,
             tables=tables,
             where_condition=where_condition
         )
 
-    def _generate_predict_result(self, predict: PredictStatement) -> ConversionResult:
-        """Generate ConversionResult for PREDICT statement.
-        Returns a ConversionResult with sql_list containing the generated SQL
+    def _generate_predict_result(self, predict: PredictStatement) -> StatementResult:
+        """Generate StatementResult for PREDICT statement.
+        Returns a StatementResult with sql_list containing the generated SQL
         for test data loading.
         """
         # Generate SQL list for PREDICT statement
@@ -312,7 +313,7 @@ class SQLGenerator:
                 include_table_prefix=False
             )
 
-        result = ConversionResult(
+        result = StatementResult(
             statement_type='PREDICT',
             sql_list=sql_list,  # Contains GeneratedSQL objects for direct execution
             target_column=target_column,
@@ -506,18 +507,17 @@ class SQLGenerator:
 
     def auto_generate_train(
         self,
-        predict_result: ConversionResult
-    ) -> ConversionResult:
+        predict_result: StatementResult
+    ) -> StatementResult:
         """Auto-generate TRAIN SQL from PREDICT SQL.
 
         Generates TRAIN SQL that excludes PREDICT data from the same table.
-        Uses WHERE condition negation: NOT (WHERE condition).
 
         Args:
-            predict_result: ConversionResult from PREDICT statement.
+            predict_result: StatementResult from PREDICT statement.
 
         Returns:
-            ConversionResult for TRAIN statement.
+            StatementResult for TRAIN statement.
         """
         table = predict_result.target_table
         predict_where = predict_result.where_condition
@@ -530,7 +530,7 @@ class SQLGenerator:
 
         sql = self._build_select_sql(table, ['*'], condition)
 
-        return ConversionResult(
+        return StatementResult(
             statement_type='TRAIN',
             sql_list=[GeneratedSQL(
                 table=table,

@@ -35,7 +35,8 @@ SQL Generator Class
 The :class:`SQLGenerator` class provides the core SQL generation functionality:
 
 .. autoclass:: tlsql.tlsql.sql_generator.SQLGenerator
-   :no-members:
+   :members: convert_query
+   :exclude-members: __init__, generate, build, generate_train_sql, generate_validate_sql, generate_predict_sql, auto_generate_train, _build_select_sql, _expr_to_sql, _group_columns_by_table, _split_where_by_table, _extract_and_conditions, _extract_table_from_expr
    :no-inherited-members:
    :show-inheritance:
 
@@ -43,7 +44,13 @@ Result Classes
 ~~~~~~~~~~~~~~
 
 .. autoclass:: tlsql.tlsql.sql_generator.ConversionResult
-   :no-members:
+   :members: predict, train, validate
+   :no-inherited-members:
+   :show-inheritance:
+   :noindex:
+
+.. autoclass:: tlsql.tlsql.sql_generator.StatementResult
+   :members: sql, get_sql, format_sql_list, is_predict, is_train, is_validate
    :no-inherited-members:
    :show-inheritance:
    :noindex:

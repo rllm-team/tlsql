@@ -15,7 +15,7 @@ Usage:
 """
 
 from typing import Optional
-from tlsql.tlsql.sql_generator import SQLGenerator, ConversionResult
+from tlsql.tlsql.sql_generator import SQLGenerator, ConversionResult, StatementResult
 __version__ = "0.1.0"
 __author__ = "TLSQL Team"
 
@@ -37,7 +37,9 @@ def convert(
         validate_query: VALIDATE TLSQL statement (optional).
 
     Returns:
-        ConversionResult: Contains predict_result, train_result, and validate_result.
+        ConversionResult: Contains predict_result (StatementResult), train_result (StatementResult), 
+        and validate_result (Optional[StatementResult]). Use shortcut properties result.predict, 
+        result.train, and result.validate to access individual statement results.
 
     """
 
@@ -79,6 +81,7 @@ from tlsql.tlsql.parser import Parser
 from tlsql.tlsql.sql_generator import (
     GeneratedSQL,
     ConversionResult,
+    StatementResult,
 )
 
 # AST nodes (all AST components)
@@ -124,6 +127,7 @@ __all__ = [
     "SQLGenerator",
     "GeneratedSQL",
     "ConversionResult",
+    "StatementResult",
     # AST nodes
     "ASTNode",
     "Statement",
