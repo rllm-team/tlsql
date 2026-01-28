@@ -1,10 +1,12 @@
 """Custom exception classes for TLSQL."""
 
+from typing import Optional
+
 
 class TLSQLError(Exception):
     """Base class for all TLSQL errors."""
 
-    def __init__(self, message: str, line_num: int = None, col_num: int = None):
+    def __init__(self, message: str, line_num: Optional[int] = None, col_num: Optional[int] = None):
         """Initialize error with optional location info."""
         self.message = message
         self.line_num = line_num

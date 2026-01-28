@@ -55,8 +55,8 @@ def test_predict_basic():
             print(f"  Table: {predict.from_table.table}")
             print(f"  Has WHERE: {predict.where is not None}")
 
-            result = convert(test_case['sql'])
-            print(f"  Generated condition: {result.where_condition or 'None'}")
+            result = convert(predict_query=test_case['sql'])
+            print(f"  Generated condition: {result.predict_result.where_condition or 'None'}")
 
         except Exception as e:
             print(f"{e}")
@@ -134,10 +134,10 @@ def test_predict_where_conditions():
                 continue
 
             # Test SQL generation
-            result = convert(test_case['sql'])
+            result = convert(predict_query=test_case['sql'])
 
             print("Parsed and generated")
-            print(f"  SQL Condition: {result.where_condition or 'None'}")
+            print(f"  SQL Condition: {result.predict_result.where_condition or 'None'}")
 
         except Exception as e:
             print(f" {e}")
@@ -185,8 +185,8 @@ def test_predict_column_references():
             print(f"  Target column: {target.column}")
 
             # Test SQL generation
-            result = convert(test_case['sql'])
-            print(f"  Generated condition: {result.where_condition or 'None'}")
+            result = convert(predict_query=test_case['sql'])
+            print(f"  Generated condition: {result.predict_result.where_condition or 'None'}")
 
         except Exception as e:
             print(f" {e}")
@@ -295,10 +295,10 @@ def test_predict_edge_cases():
                 continue
 
             # Test SQL generation
-            result = convert(test_case['sql'])
+            result = convert(predict_query=test_case['sql'])
 
             print("Parsed and generated")
-            print(f"  Condition: {result.where_condition or 'None'}")
+            print(f"  Condition: {result.predict_result.where_condition or 'None'}")
 
         except Exception as e:
             if test_case['should_pass']:

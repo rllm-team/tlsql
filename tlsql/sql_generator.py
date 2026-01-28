@@ -39,52 +39,162 @@ class GeneratedSQL:
     columns: List[str] = field(default_factory=list)
 
 
+class _NoneResult:
+    """Special object that returns None for all attribute access.
+
+    Used as a placeholder when validate_result is None.
+    """
+    def __getattr__(self, name):
+        return None
+
+    def __bool__(self):
+        return False
+
+    def __repr__(self):
+        return "None"
+
+
+_NONE_RESULT = _NoneResult()
+
+
 @dataclass
 class ConversionResult:
     """Result from TLSQL conversion.
 
+    This class represents both individual statement results and workflow results.
+    For individual statements (PREDICT, TRAIN, VALIDATE), use statement_type and sql_list.
+    For workflow results, use predict_result, train_result, and validate_result.
+
     Attributes:
-        statement_type: Type of statement.
+        statement_type: Type of statement ('PREDICT', 'TRAIN', or 'VALIDATE').
         sql_list: List of GeneratedSQL objects per table.
-        target_column: Target column reference.
-        task_type: Task type.
+        target_column: Target column reference (for PREDICT statements).
+        task_type: Task type (for PREDICT statements).
         target_table: Target table name.
         tables: List of all tables involved in the statement.
         where_condition: WHERE condition as SQL string.
+        predict_result: ConversionResult for PREDICT statement (workflow mode).
+        train_result: ConversionResult for TRAIN statement (workflow mode).
+        validate_result: ConversionResult for VALIDATE statement (workflow mode).
     """
-    statement_type: str
+    statement_type: str = ""
     sql_list: Optional[List[GeneratedSQL]] = None
     target_column: Optional[str] = None
     task_type: Optional[str] = None
     target_table: Optional[str] = None
     tables: List[str] = field(default_factory=list)
     where_condition: Optional[str] = None
+    predict_result: Optional['ConversionResult'] = None  # type: ignore
+    train_result: Optional['ConversionResult'] = None  # type: ignore
+    validate_result: Optional['ConversionResult'] = None  # type: ignore
 
     @property
     def is_train(self) -> bool:
+        """Check if this is a TRAIN statement result."""
         return self.statement_type == 'TRAIN'
 
     @property
     def is_validate(self) -> bool:
+        """Check if this is a VALIDATE statement result."""
         return self.statement_type == 'VALIDATE'
 
     @property
     def is_predict(self) -> bool:
+        """Check if this is a PREDICT statement result."""
         return self.statement_type == 'PREDICT'
+
+    @property
+    def is_workflow(self) -> bool:
+        """Check if this is a workflow result (contains multiple statement results)."""
+        return self.predict_result is not None
+
+    @property
+    def predict(self) -> 'ConversionResult':
+        """Shortcut to predict_result for workflow results."""
+        return self.predict_result if self.predict_result else _NONE_RESULT
+
+    @property
+    def train(self) -> 'ConversionResult':
+        """Shortcut to train_result for workflow results."""
+        return self.train_result if self.train_result else _NONE_RESULT
+
+    @property
+    def validate(self) -> 'ConversionResult':
+        """Shortcut to validate_result for workflow results.
+
+        Returns _NONE_RESULT if validate_result is None, allowing
+        result.validate.sql to return None instead of raising AttributeError.
+        """
+        return self.validate_result if self.validate_result else _NONE_RESULT
+
+    @property
+    def sql(self) -> Optional[str]:
+        """Get the first SQL string from sql_list.
+
+        Returns:
+            First SQL string if sql_list exists and is not empty, None otherwise.
+        """
+        if self.sql_list and len(self.sql_list) > 0:
+            return self.sql_list[0].sql
+        return None
+
+    def get_sql(self, table: Optional[str] = None) -> Optional[str]:
+        """Get SQL string for a specific table.
+
+        Args:
+            table: Table name. If None, returns the first SQL string.
+
+        Returns:
+            SQL string for the specified table, or first SQL string if table is None.
+            Returns None if table not found or sql_list is empty.
+        """
+        if not self.sql_list or len(self.sql_list) == 0:
+            return None
+
+        if table is None:
+            return self.sql_list[0].sql
+
+        for gen_sql in self.sql_list:
+            if gen_sql.table == table:
+                return gen_sql.sql
+
+        return None
+
+    def format_sql_list(self, indent: str = "    ") -> str:
+        """Format sql_list as a multi-line string.
+
+        Args:
+            indent: Indentation string for each line.
+
+        Returns:
+            Formatted string with all SQL statements, one per table.
+        """
+        if not self.sql_list or len(self.sql_list) == 0:
+            return f"{indent}None"
+
+        lines = []
+        for i, gen_sql in enumerate(self.sql_list, 1):
+            lines.append(f"{indent}{i}. Table: {gen_sql.table}")
+            lines.append(f"{indent}   SQL: {gen_sql.sql}")
+
+        return "\n".join(lines)
 
 
 class SQLGenerator:
     """SQL generator that converts TLSQL AST nodes to standard SQL statements."""
 
     def __init__(self):
-        pass
+        """Initialize SQL generator."""
 
     @classmethod
-    def convert(cls, tlsql: str) -> ConversionResult:
-        """Convert TLSQL statement to standard SQL.
+    def convert_query(cls, tlsql: str) -> ConversionResult:
+        """Convert a single TLSQL query to standard SQL.
+
+        This is an internal method for converting individual TLSQL queries.
+        For workflow conversion, use the top-level tlsql.convert() function.
 
         Args:
-            tlsql: TLSQL statement string.
+            tlsql: TLSQL query string.
 
         Returns:
             ConversionResult object containing SQL and other meta information.
@@ -202,7 +312,7 @@ class SQLGenerator:
                 include_table_prefix=False
             )
 
-        return ConversionResult(
+        result = ConversionResult(
             statement_type='PREDICT',
             sql_list=sql_list,  # Contains GeneratedSQL objects for direct execution
             target_column=target_column,
@@ -211,6 +321,9 @@ class SQLGenerator:
             tables=[target_table_name],
             where_condition=where_condition
         )
+        # Store source AST for later use in auto_generate_train
+        result._source_ast = predict
+        return result
 
     def generate_train_sql(self, train: TrainStatement) -> List[GeneratedSQL]:
         """Generate SQL statements for TRAIN."""
@@ -390,3 +503,41 @@ class SQLGenerator:
             return f"{column} IN ({values_str})"
 
         return ""
+
+    def auto_generate_train(
+        self,
+        predict_result: ConversionResult
+    ) -> ConversionResult:
+        """Auto-generate TRAIN SQL from PREDICT SQL.
+
+        Generates TRAIN SQL that excludes PREDICT data from the same table.
+        Uses WHERE condition negation: NOT (WHERE condition).
+
+        Args:
+            predict_result: ConversionResult from PREDICT statement.
+
+        Returns:
+            ConversionResult for TRAIN statement.
+        """
+        table = predict_result.target_table
+        predict_where = predict_result.where_condition
+
+        if not predict_where:
+            condition = None
+        else:
+            # Use WHERE condition negation
+            condition = f"NOT ({predict_where})"
+
+        sql = self._build_select_sql(table, ['*'], condition)
+
+        return ConversionResult(
+            statement_type='TRAIN',
+            sql_list=[GeneratedSQL(
+                table=table,
+                sql=sql,
+                columns=['*']
+            )],
+            target_table=table,
+            tables=[table],
+            where_condition=condition
+        )

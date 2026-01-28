@@ -35,20 +35,30 @@ from .ast_nodes import (
 )
 from .exceptions import TLSQLError, LexerError, ParseError, GenerationError
 from .sql_generator import SQLGenerator, GeneratedSQL, ConversionResult
+from typing import Optional
 
-def convert(tlsql: str):
-    """Convert TLSQL statement to standard SQL.
-    
-    This function is re-exported from the parent tlsql module.
-    Uses lazy import to avoid circular dependency.
+
+def convert(predict_query: str, train_query: Optional[str] = None, validate_query: Optional[str] = None) -> ConversionResult:
+    """Convert TLSQL statements to standard SQL.
+
+    Args:
+        predict_query: PREDICT TLSQL statement (required).
+        train_query: TRAIN TLSQL statement (optional).
+        validate_query: VALIDATE TLSQL statement (optional).
+
+    Returns:
+        ConversionResult: Contains predict_result, train_result, and validate_result.
     """
     import sys
-   
     parent_module = sys.modules.get('tlsql')
     if parent_module is None:
         import importlib
         parent_module = importlib.import_module('tlsql')
-    return parent_module.convert(tlsql)
+    return parent_module.convert(
+        predict_query=predict_query,
+        train_query=train_query,
+        validate_query=validate_query
+    )
 
 __all__ = [
     # Tokens

@@ -109,6 +109,13 @@ def main():
         'username': 'your username',
         'password': 'your password'
     }
+
+    predict_query = """
+    PREDICT VALUE(users.Age, CLF)
+    FROM users
+    WHERE users.Gender='F'
+    """
+
     train_query = """
     TRAIN WITH (users.*, movies.*, ratings.*)
     FROM users, movies, ratings
@@ -119,12 +126,6 @@ def main():
     VALIDATE WITH (users.*)
     FROM users
     WHERE users.Gender='M' and users.userID>3000
-    """
-
-    predict_query = """
-    PREDICT VALUE(users.Age, CLF)
-    FROM users
-    WHERE users.Gender='F'
     """
 
     target_table, non_table_embeddings, adj, emb_size = prepare_data_from_tlsql(
