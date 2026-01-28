@@ -11,7 +11,6 @@ Example
 .. code-block:: python
 
     import tlsql
-
     
     result = tlsql.convert(
         predict_query="PREDICT VALUE(users.Age, CLF) FROM users WHERE users.Gender='F'"

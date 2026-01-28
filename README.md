@@ -35,7 +35,7 @@ TLSQL works seamlessly with **RDBs, data warehouses, and data lakes**, enabling 
 
 ## TLSQL Syntax
 
-### 1. PREDICT VALUE Statement
+### 1. PREDICT Statement
 
 The `PREDICT` statement specifies the target column for prediction and the task type (classification or regression). This statement defines the test set - the data for which you want to make predictions. The `WHERE` clause in this statement filters which rows are included in the test set.
 
@@ -60,7 +60,7 @@ FROM users
 WHERE users.Gender='F' 
 ```
 
-### 2. TRAIN WITH Statement
+### 2. TRAIN Statement
 
 The `TRAIN` statement specifies which columns and tables to use for training data, along with optional filtering conditions. This statement defines the dataset used to train your machine learning model.
 
@@ -80,7 +80,7 @@ FROM users, movies, ratings
 WHERE users.Gender='M' AND users.userID<3000
 ```
 
-### 3. VALIDATE WITH Statement
+### 3. VALIDATE Statement
 
 The `VALIDATE` statement is used to specify the validation data, and its syntax is similar to that of `PREDICT`, with only slight differences in the beginning part.
 
@@ -129,7 +129,6 @@ This will install TLSQL in development mode, allowing you to make changes to the
 
 ```python
 import tlsql
-
 
 result = tlsql.convert(
     predict_query="PREDICT VALUE(users.Age, CLF) FROM users WHERE users.Gender='F'"
