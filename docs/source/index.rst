@@ -12,7 +12,7 @@ Overview
 
 TLSQL supports three types of statements that map directly to ML workflows:
 
-- **PREDICT VALUE**: Test set, target column and task type (REQUIRED).
+- **PREDICT VALUE**: Test set.
 - **TRAIN WITH**: Training set.
 - **VALIDATE WITH**: Validation set.
 
@@ -36,7 +36,7 @@ Quick Start
     print(result.predict.statement_type)  # 'PREDICT'
     print(result.predict.target_column)   # 'users.Age'
     print(result.predict.task_type)       # 'CLF'
-    
+
 Components
 ----------
 

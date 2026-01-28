@@ -82,7 +82,7 @@ WHERE users.Gender='M' AND users.userID<3000
 
 ### 3. VALIDATE WITH Statement
 
-The `VALIDATE WITH` statement specifies validation data with the same syntax as `TRAIN WITH`. This statement defines the validation set used for model selection. If omitted, `result.validate_result` will be `None`.
+The `VALIDATE WITH` statement is used to specify the validation data, and its syntax is similar to that of `PREDICT`, with only slight differences in the beginning part.
 
 #### Syntax
 
