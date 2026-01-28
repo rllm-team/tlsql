@@ -44,13 +44,13 @@ Result Classes
 ~~~~~~~~~~~~~~
 
 .. autoclass:: tlsql.tlsql.sql_generator.ConversionResult
-   :members: predict, train, validate
+   :no-members:
    :no-inherited-members:
    :show-inheritance:
    :noindex:
 
 .. autoclass:: tlsql.tlsql.sql_generator.StatementResult
-   :members: sql, get_sql, format_sql_list, is_predict, is_train, is_validate
+   :no-members:
    :no-inherited-members:
    :show-inheritance:
    :noindex:
