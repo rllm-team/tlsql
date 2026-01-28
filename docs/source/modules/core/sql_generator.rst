@@ -12,14 +12,15 @@ Example
 
     import tlsql
 
-    result = tlsql.convert("PREDICT VALUE(users.Age, CLF) FROM users")
     
-    print(f"Statement Type: {result.statement_type}")
-    print(f"Target Column: {result.target_column}")
+    result = tlsql.convert(
+        predict_query="PREDICT VALUE(users.Age, CLF) FROM users WHERE users.Gender='F'"
+    )
     
-    if result.sql_list:
-        for sql_obj in result.sql_list:
-            print(f"SQL: {sql_obj.sql}")
+    print(f"PREDICT Statement Type: {result.predict.statement_type}")
+    print(f"Target Column: {result.predict.target_column}")
+    print(f"PREDICT SQL: {result.predict.sql}")
+    
 
 Main API
 ~~~~~~~~

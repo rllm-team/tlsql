@@ -18,7 +18,8 @@ Example
     ast = parser.parse()
     
     if ast.predict:
-        print(f"Target: {ast.predict.value.target}")
+        print(f"Target Column: {ast.predict.value.target.column}")
+        print(f"Target Table: {ast.predict.value.target.table}")
         print(f"Task Type: {ast.predict.value.predict_type.type_name}")
 
 .. autoclass:: tlsql.tlsql.parser.Parser

@@ -1,17 +1,26 @@
 TLSQL Documentation
 ===================
 
-TLSQL converts custom SQL-like statements into standard SQL queries for machine learning workflows.
-It provides a declarative syntax for specifying training, validation, and test datasets.
+TLSQL is a system designed to simplify machine learning workflows on structured tabular data. It translates SQL-like statements into standard SQL queries and structured learning task descriptions, enabling data scientists and engineers to focus on model development instead of writing complex SQL or manually managing datasets.
+TLSQL works seamlessly with **RDBs, data warehouses, and data lakes**, enabling end-to-end table-based ML workflows.
+
+
 
 Overview
 --------
 
-TLSQL uses three types of statements:
+TLSQL supports three types of statements that map directly to ML workflows:
 
 - **PREDICT VALUE**: Test set, target column and task type (REQUIRED).
-- **TRAIN WITH**: Training set (OPTIONAL - defaults to all data except PREDICT data).
-- **VALIDATE WITH**: Validation set (OPTIONAL - defaults to k=5 fold cross validation).
+- **TRAIN WITH**: Training set.
+- **VALIDATE WITH**: Validation set.
+
+.. image:: _static/workflow.jpg
+   :alt: TLSQL Workflow
+   :width: 600px
+   :align: center
+
+.. centered:: **The TLSQL Workflow**
 
 Quick Start
 -----------
@@ -20,10 +29,14 @@ Quick Start
 
     import tlsql
     
-    result = tlsql.convert("PREDICT VALUE(users.Age, CLF) FROM users")
-    print(result.statement_type)  # 'PREDICT'
-    print(result.target_column)   # 'users.Age'
-    print(result.task_type)       # 'CLF'
+    # Workflow mode: PREDICT only (auto-generates TRAIN)
+    result = tlsql.convert(
+        predict_query="PREDICT VALUE(users.Age, CLF) FROM users WHERE users.Gender='F'"
+    )
+    print(result.predict.statement_type)  # 'PREDICT'
+    print(result.predict.target_column)   # 'users.Age'
+    print(result.predict.task_type)       # 'CLF'
+    print(result.train.sql)                # Auto-generated TRAIN SQL
 
 Components
 ----------

@@ -1316,6 +1316,28 @@ dl.py.method > dt + dd {
     line-height: 1.6 !important;
 }
 
+/* Hide list markers in field list (Parameters, Returns, etc.) */
+.field-list dd ul,
+.field-list dd ol,
+.field-list ul,
+.field-list ol {
+    list-style: none !important;
+    padding-left: 0 !important;
+    margin-left: 0 !important;
+}
+
+.field-list dd li::marker,
+.field-list li::marker {
+    content: none !important;
+}
+
+.field-list dd li,
+.field-list li {
+    list-style: none !important;
+    padding-left: 0 !important;
+    margin-left: 0 !important;
+}
+
 /* Spacing for paragraphs inside field list */
 .field-list dd p {
     margin-bottom: 0.5em !important;
