@@ -24,7 +24,7 @@ TLSQL works seamlessly with **relational databases, data warehouses, and data la
 - **`VALIDATE WITH`**: Specifies the validation set.
 
 <div align="center">
-  <img src="docs/source/_static/workflow.svg" alt="TLSQL Workflow" width="500"/>
+  <img src="docs/source/_static/workflow.svg" alt="TLSQL Workflow" width="600"/>
   <br/>
   <small><strong>The TLSQL Workflow</strong></small>
 </div>
