@@ -2,10 +2,6 @@
 
 # TLSQL: SQL-like API for Table Learning
 
- 
-
-*A Python library that converts custom SQL-like statements into standard SQL queries for machine learning workflows on tables in modern data management systems.*
-
 <br/>
 
 [![Python](https://img.shields.io/badge/Python-3.8+-3776ab?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
@@ -21,14 +17,14 @@
 ## About
 TLSQL is a system designed to simplify machine learning workflows on structured tabular data. It translates SQL-like statements into standard SQL queries and structured learning task descriptions, enabling data scientists and engineers to focus on model development instead of writing complex SQL or manually managing datasets.
 
-TLSQL works seamlessly with **RDBs, data warehouses, and data lakes**, enabling end-to-end table-based ML workflows.
+TLSQL works seamlessly with **relational databases, data warehouses, and data lakes**, enabling end-to-end table-based ML workflows.
 
 - **`PREDICT VALUE`**: Specifies the test set.
 - **`TRAIN WITH`**: Specifies the training set.
 - **`VALIDATE WITH`**: Specifies the validation set.
 
 <div align="center">
-  <img src="docs/source/_static/workflow.jpg" alt="TLSQL Workflow" width="450"/>
+  <img src="docs/source/_static/workflow.svg" alt="TLSQL Workflow" width="500"/>
   <br/>
   <small><strong>The TLSQL Workflow</strong></small>
 </div>
@@ -151,9 +147,7 @@ Check out the examples directory for more usage examples:
 
 
 
-### Citation
-
-```
+### Citation```
 @article{chen2026tlsql,
   title={TLSQL: Table Learning Structured Query Language},
   author={Chen, Feiyang and Zhong, Ken and Zhang, Aoqian and Wang, Zheng and Pan, Li and Li, Jianhua},

@@ -3,7 +3,7 @@ TLSQL Documentation
 
 TLSQL is a system designed to simplify machine learning workflows on structured tabular data. It translates SQL-like statements into standard SQL queries and structured learning task descriptions, enabling data scientists and engineers to focus on model development instead of writing complex SQL or manually managing datasets.
 
-TLSQL works seamlessly with **RDBs, data warehouses, and data lakes**, enabling end-to-end table-based ML workflows.
+TLSQL works seamlessly with **relational databases, data warehouses, and data lakes**, enabling end-to-end table-based ML workflows.
 
 
 
@@ -16,9 +16,9 @@ TLSQL supports three types of statements that map directly to ML workflows:
 - **TRAIN WITH**: Training set.
 - **VALIDATE WITH**: Validation set.
 
-.. image:: _static/workflow.jpg
+.. image:: _static/workflow.svg
    :alt: TLSQL Workflow
-   :width: 600px
+   :width: 700px
    :align: center
 
 .. centered:: **The TLSQL Workflow**
