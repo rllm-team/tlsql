@@ -19,17 +19,20 @@ def level_I():
     FROM users
     WHERE users.Gender='F'
     """
-    result = tlsql.convert(predict_query=predict_query)
+    result = tlsql.convert_workflow_queries(
+        query_list=[predict_query.strip(), None, None],
+        table_list=["users", "movies", "ratings"]
+    )
     print("PREDICT Query:")
     print(f"    {predict_query.strip()}\n")
     print("PREDICT SQL:")
     print(f"    {result.predict.sql}")
     print("TRAIN SQL:")
     print(result.train.format_sql_list())
-    print("(Not specified, default to using all data except PREDICT data)")
+    print("    (Not specified, default to using all data except PREDICT data)")
     print("VALIDATE SQL:")
     print(f"    {result.validate.sql}")
-    print("(Not specified)")
+    print("    (Not specified)")
 
 
 def level_II():
@@ -48,7 +51,7 @@ def level_II():
     WHERE users.Gender='M' and users.userID BETWEEN 1 AND 3000
     """
 
-    result = tlsql.convert(predict_query=predict_query, train_query=train_query)
+    result = tlsql.convert_workflow_queries(query_list=[predict_query.strip(), train_query.strip(), None])
     print("PREDICT Query:")
     print(f"    {predict_query.strip()}\n")
     print("PREDICT SQL:")
@@ -59,7 +62,7 @@ def level_II():
     print(result.train.format_sql_list())
     print("VALIDATE SQL:")
     print(f"    {result.validate.sql}")
-    print("(Not specified)")
+    print("    (Not specified)")
 
 
 def level_III():
@@ -84,11 +87,11 @@ def level_III():
     WHERE users.Gender='M' and users.userID>3000
     """
 
-    result = tlsql.convert(
-        predict_query=predict_query,
-        train_query=train_query,
-        validate_query=validate_query
-    )
+    result = tlsql.convert_workflow_queries(query_list=[
+        predict_query.strip(),
+        train_query.strip(),
+        validate_query.strip()
+    ])
     print("PREDICT Query:")
     print(f"    {predict_query.strip()}\n")
     print("PREDICT SQL:")

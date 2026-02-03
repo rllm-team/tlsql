@@ -191,7 +191,7 @@ class SQLGenerator:
         """Initialize SQL generator."""
 
     @classmethod
-    def convert_query(cls, tlsql: str) -> StatementResult:
+    def convert(cls, tlsql: str) -> StatementResult:
         """Convert a single TLSQL query to standard SQL.
 
         Args:
@@ -507,17 +507,23 @@ class SQLGenerator:
 
     def auto_generate_train(
         self,
-        predict_result: StatementResult
+        predict_result: StatementResult,
+        table_list: Optional[List[str]] = None
     ) -> StatementResult:
         """Auto-generate TRAIN SQL from PREDICT SQL.
 
-        Generates TRAIN SQL that excludes PREDICT data from the same table.
+        For the PREDICT table: generates SQL with NOT(predict WHERE). For other
+        tables in table_list: generates SELECT * FROM table. If table_list is
+        None, only the PREDICT table is used (single SQL with NOT condition).
 
         Args:
             predict_result: StatementResult from PREDICT statement.
+            table_list: Optional list of all tables; when given, train SQL is
+                generated for each (predict table with NOT condition, others
+                with SELECT *).
 
         Returns:
-            StatementResult for TRAIN statement.
+            StatementResult for TRAIN statement with sql_list per table.
         """
         table = predict_result.target_table
         predict_where = predict_result.where_condition
@@ -525,19 +531,26 @@ class SQLGenerator:
         if not predict_where:
             condition = None
         else:
-            # Use WHERE condition negation
             condition = f"NOT ({predict_where})"
 
-        sql = self._build_select_sql(table, ['*'], condition)
+        sql_list: List[GeneratedSQL] = []
+        tables_used = table_list if table_list is not None else [table]
+
+        # Predict table: SELECT * WHERE NOT (predict_where)
+        train_sql = self._build_select_sql(table, ['*'], condition)
+        sql_list.append(GeneratedSQL(table=table, sql=train_sql, columns=['*']))
+
+        # Other tables in table_list: SELECT * FROM table
+        for t in tables_used:
+            if t == table:
+                continue
+            other_sql = self._build_select_sql(t, ['*'], None)
+            sql_list.append(GeneratedSQL(table=t, sql=other_sql, columns=['*']))
 
         return StatementResult(
             statement_type='TRAIN',
-            sql_list=[GeneratedSQL(
-                table=table,
-                sql=sql,
-                columns=['*']
-            )],
+            sql_list=sql_list,
             target_table=table,
-            tables=[table],
+            tables=tables_used,
             where_condition=condition
         )

@@ -126,12 +126,12 @@ This will install TLSQL in development mode, allowing you to make changes to the
 ```python
 import tlsql
 
-result = tlsql.convert(
-    predict_query="PREDICT VALUE(users.Age, CLF) FROM users WHERE users.Gender='F'"
-)
-print(result.predict.statement_type)  # 'PREDICT'
-print(result.predict.target_column)   # 'users.Age'
-print(result.predict.task_type)       # 'CLF'
+# Convert a single TLSQL statement
+result = tlsql.convert("PREDICT VALUE(users.Age, CLF) FROM users WHERE users.Gender='F'")
+print(result.statement_type)   # 'PREDICT'
+print(result.target_column)    # 'users.Age'
+print(result.task_type)        # 'CLF'
+print(result.sql)              # generated SQL
 ```
 
 ### Examples

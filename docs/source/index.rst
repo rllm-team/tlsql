@@ -29,20 +29,20 @@ Quick Start
 .. code-block:: python
 
     import tlsql
-    
-    result = tlsql.convert(
-        predict_query="PREDICT VALUE(users.Age, CLF) FROM users WHERE users.Gender='F'"
-    )
-    print(result.predict.statement_type)  # 'PREDICT'
-    print(result.predict.target_column)   # 'users.Age'
-    print(result.predict.task_type)       # 'CLF'
+
+    # Single statement: convert one TLSQL to SQL
+    result = tlsql.convert("PREDICT VALUE(users.Age, CLF) FROM users WHERE users.Gender='F'")
+    print(result.statement_type)   # 'PREDICT'
+    print(result.target_column)    # 'users.Age'
+    print(result.sql)              # generated SQL
 
 Components
 ----------
 
 **API:**
 
-- :py:func:`tlsql.convert` - Main conversion function.
+- :py:func:`convert <tlsql.convert>` — Convert a single TLSQL statement to SQL.
+- :py:func:`convert_workflow_queries <tlsql.convert_workflow_queries>` — Convert a workflow (query_list of PREDICT, TRAIN, VALIDATE) to SQL.
 
 **Core Components:**
 

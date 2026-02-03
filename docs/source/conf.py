@@ -56,8 +56,8 @@ try:
     import tlsql.tlsql
     import tlsql.tlsql.ast_nodes  # Test import
 
-    # Test that convert function exists
-    if hasattr(tlsql, 'convert'):
+    # Test that convert_workflow_queries function exists
+    if hasattr(tlsql, 'convert_workflow_queries'):
         tlsql_available = True
 except (ImportError, Exception):
     # Silently handle import errors - documentation will be built, but autodoc features may be limited

@@ -7,61 +7,75 @@ This package converts TLSQL workflow statements into standard SQL:
 
 Usage:
     >>> from tlsql import convert
-    >>> result = convert(
-    ...     predict_query="PREDICT VALUE(users.Age, CLF) FROM users WHERE users.Gender='F'"
-    ... )
-    >>> print(result.predict.sql)
-    >>> print(result.train.sql)
+    >>> result = convert("PREDICT VALUE(users.Age, CLF) FROM users WHERE users.Gender='F'")
+    >>> print(result.statement_type)
+    >>> print(result.sql)
 """
 
-from typing import Optional
+from typing import Optional, List
 from tlsql.tlsql.sql_generator import SQLGenerator, ConversionResult, StatementResult
 __version__ = "0.1.0"
 __author__ = "TLSQL Team"
 
 
-def convert(
-    predict_query: str,
-    train_query: Optional[str] = None,
-    validate_query: Optional[str] = None
-) -> ConversionResult:
-    """Convert TLSQL workflow statements to standard SQL.
-
-    Converts PREDICT, TRAIN, and VALIDATE TLSQL statements into standard SQL.
-    PREDICT is required. If TRAIN is not provided, it will be auto-generated
-    by excluding PREDICT data from the same table.
+def convert(tlsql: str) -> StatementResult:
+    """Convert a single TLSQL statement to standard SQL.
 
     Args:
-        predict_query: PREDICT TLSQL statement (required).
-        train_query: TRAIN TLSQL statement (optional, auto-generated if not provided).
-        validate_query: VALIDATE TLSQL statement (optional).
+        tlsql: One TLSQL statement (PREDICT, TRAIN, or VALIDATE).
 
     Returns:
-        ConversionResult: Contains predict_result (StatementResult), train_result (StatementResult), 
-        and validate_result (Optional[StatementResult]). Use shortcut properties result.predict, 
-        result.train, and result.validate to access individual statement results.
-
+        StatementResult with sql_list, target_table, where_condition, etc.
     """
+    return SQLGenerator.convert(tlsql)
 
-    if not predict_query or not predict_query.strip():
-        raise ValueError("predict_query is required.")
+
+def convert_workflow_queries(
+    query_list: List[Optional[str]],
+    table_list: Optional[List[str]] = None
+) -> ConversionResult:
+    """Workflow-level API built on convert().
+
+    It takes three statements at once and returns a ConversionResult. 
+    PREDICT is required; TRAIN and VALIDATEare optional. 
+    When TRAIN is omitted, it is auto-generated from the PREDICT
+    statement and table_list (PREDICT table: NOT(WHERE); other tables: SELECT *).
+
+    Args:
+        query_list: List of three TLSQL strings [PREDICT, TRAIN, VALIDATE].
+            Only the first (PREDICT) is required; the others may be None or "".
+        table_list: List of table names used when auto-generating TRAIN.
+            Required when query_list[1] (TRAIN) is not provided.
+
+    Returns:
+        ConversionResult containing predict_result, train_result, and
+        validate_result (None if VALIDATE not provided). Use result.predict,
+        result.train, and result.validate for access.
+    """
+    if not query_list or len(query_list) != 3:
+        raise ValueError("query_list must contain exactly three elements [PREDICT, TRAIN, VALIDATE].")
+
+    predict_query, train_query, validate_query = query_list[0], query_list[1], query_list[2]
+
+    if not predict_query or not str(predict_query).strip():
+        raise ValueError("PREDICT statement (query_list[0]) is required.")
 
     generator = SQLGenerator()
+    predict_result = SQLGenerator.convert(predict_query)
 
-    # Process PREDICT
-    predict_result = SQLGenerator.convert_query(predict_query)
+    has_train = train_query and str(train_query).strip()
+    if not has_train and not table_list:
+        raise ValueError("table_list is required when TRAIN statement (query_list[1]) is not provided.")
 
-    # Process TRAIN
     train_result = (
-        SQLGenerator.convert_query(train_query)
-        if train_query and train_query.strip()
-        else generator.auto_generate_train(predict_result)
+        SQLGenerator.convert(train_query)
+        if has_train
+        else generator.auto_generate_train(predict_result, table_list=table_list)
     )
 
-    # Process VALIDATE
     validate_result = (
-        SQLGenerator.convert_query(validate_query)
-        if validate_query and validate_query.strip()
+        SQLGenerator.convert(validate_query)
+        if validate_query and str(validate_query).strip()
         else None
     )
 
@@ -118,6 +132,7 @@ from tlsql.tlsql.exceptions import (
 __all__ = [
     # Top-level API
     "convert",
+    "convert_workflow_queries",
     # Tokens
     "Token",
     "TokenType",

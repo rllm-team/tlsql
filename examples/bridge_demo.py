@@ -129,9 +129,9 @@ def main():
     """
 
     target_table, non_table_embeddings, adj, emb_size = prepare_data_from_tlsql(
+        predict_query=predict_query,
         train_query=train_query,
         validate_query=validate_query,
-        predict_query=predict_query,
         db_config=db_config,
         device=device
     )

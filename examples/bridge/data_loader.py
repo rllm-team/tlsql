@@ -6,7 +6,7 @@ from tlsql.examples.executor.db_executor import DatabaseExecutor, DatabaseConfig
 
 
 def _load_data(executor, sqls):
-    """Load data using SQL from convert result."""
+    """Load data using SQL from convert_workflow_queries result."""
     if not sqls or not sqls.sql_list:
         return {}
     data_dict = {}
@@ -17,24 +17,23 @@ def _load_data(executor, sqls):
     return data_dict
 
 
-def prepare_data_from_tlsql(train_query, validate_query, predict_query, db_config, device):
+def prepare_data_from_tlsql(predict_query, train_query, validate_query, db_config, device, table_list=None):
     """Get data and prepare in format required by bridge model.
 
     Args:
-        train_query: TRAIN TLSQL statement (optional, can be None)
-        validate_query: VALIDATE TLSQL statement (optional, can be None)
-        predict_query: PREDICT TLSQL statement (required)
+        predict_query: PREDICT TLSQL statement
+        train_query: TRAIN TLSQL statement
+        validate_query: VALIDATE TLSQL statement
         db_config: Database configuration dictionary
         device: Device (CPU/GPU)
+        table_list: List of table names (required when train_query is None)
 
     Returns:
         tuple: (target_table, non_table_embeddings, adj, emb_size)
     """
-    # Use workflow mode convert
-    result = tlsql.convert(
-        predict_query=predict_query,
-        train_query=train_query,
-        validate_query=validate_query
+    result = tlsql.convert_workflow_queries(
+        query_list=[predict_query, train_query, validate_query],
+        table_list=table_list
     )
 
     executor = DatabaseExecutor(DatabaseConfig(**db_config))

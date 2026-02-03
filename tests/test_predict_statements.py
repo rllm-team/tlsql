@@ -7,7 +7,7 @@ sys.path.append("./")
 sys.path.append("../")
 sys.path.append("../../")
 
-from tlsql import Parser, convert
+from tlsql import Parser, convert_workflow_queries
 
 
 def print_test_header(test_name: str):
@@ -55,7 +55,7 @@ def test_predict_basic():
             print(f"  Table: {predict.from_table.table}")
             print(f"  Has WHERE: {predict.where is not None}")
 
-            result = convert(predict_query=test_case['sql'])
+            result = convert_workflow_queries(query_list=[test_case['sql'], None, None], table_list=['users'])
             print(f"  Generated condition: {result.predict_result.where_condition or 'None'}")
 
         except Exception as e:
@@ -134,7 +134,7 @@ def test_predict_where_conditions():
                 continue
 
             # Test SQL generation
-            result = convert(predict_query=test_case['sql'])
+            result = convert_workflow_queries(query_list=[test_case['sql'], None, None], table_list=['users'])
 
             print("Parsed and generated")
             print(f"  SQL Condition: {result.predict_result.where_condition or 'None'}")
@@ -185,7 +185,7 @@ def test_predict_column_references():
             print(f"  Target column: {target.column}")
 
             # Test SQL generation
-            result = convert(predict_query=test_case['sql'])
+            result = convert_workflow_queries(query_list=[test_case['sql'], None, None], table_list=['users'])
             print(f"  Generated condition: {result.predict_result.where_condition or 'None'}")
 
         except Exception as e:
@@ -295,7 +295,7 @@ def test_predict_edge_cases():
                 continue
 
             # Test SQL generation
-            result = convert(predict_query=test_case['sql'])
+            result = convert_workflow_queries(query_list=[test_case['sql'], None, None], table_list=['users'])
 
             print("Parsed and generated")
             print(f"  Condition: {result.predict_result.where_condition or 'None'}")
