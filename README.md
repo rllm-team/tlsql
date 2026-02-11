@@ -147,7 +147,11 @@ Check out the examples directory for more usage examples:
 
 
 
-### Citation```
+
+
+### Citation
+
+```bibtex
 @article{chen2026tlsql,
   title={TLSQL: Table Learning Structured Query Language},
   author={Chen, Feiyang and Zhong, Ken and Zhang, Aoqian and Wang, Zheng and Pan, Li and Li, Jianhua},
@@ -155,4 +159,3 @@ Check out the examples directory for more usage examples:
   year={2026}
 }
 ```
-**Paper Link**: [arXiv:2601.14109](https://arxiv.org/abs/2601.14109)
