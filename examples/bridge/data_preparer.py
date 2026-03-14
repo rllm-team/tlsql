@@ -4,6 +4,7 @@ from typing import Dict
 
 import torch
 import pandas as pd
+from pandas.api import types as pdt
 
 from tlsql.examples.bridge.model import build_homo_graph
 from rllm.transforms.graph_transforms import GCNTransform
@@ -22,6 +23,7 @@ def prepare_bridge_data(
     validate_data: Dict[str, pd.DataFrame],
     test_data: pd.DataFrame,
     target_column: str,
+    target_pkey: str,
     device: torch.device = None,
 ):
     """Prepare data for BRIDGE model
@@ -31,9 +33,10 @@ def prepare_bridge_data(
         validate_data: Dictionary mapping table names to validation DataFrames
         test_data: Dictionary mapping table names to test DataFrames
         target_column: Target column name in format 'table.column'
+        target_pkey: Primary key column name of the target table
         device: PyTorch device
     """
-    target_pkey, emb_size = 'UserID', 384
+    emb_size = 384
     table_name, col_name = target_column.split('.')
     train_df, validate_df, test_df = train_data[table_name], validate_data[table_name], test_data
     all_dfs = [train_df, validate_df, test_df]
@@ -45,7 +48,16 @@ def prepare_bridge_data(
     common_cols = list(set.intersection(*[set(df.columns) for df in all_dfs]))
     target_df = pd.concat([df[common_cols] for df in all_dfs], ignore_index=True).set_index(target_pkey)
 
-    target_table = TableData(df=target_df, col_types={col: ColType.CATEGORICAL for col in target_df.columns},target_col=col_name, pkey=target_pkey)
+    for col in target_df.columns:
+        if pdt.is_string_dtype(target_df[col].dtype):
+            target_df[col] = target_df[col].astype(object)
+
+    target_table = TableData(
+        df=target_df,
+        col_types={col: ColType.CATEGORICAL for col in target_df.columns},
+        target_col=col_name,
+        pkey=target_pkey,
+    )
     train_len, val_len, test_len = len(train_df), len(validate_df), len(test_df)
     train_mask = torch.cat([torch.ones(train_len, dtype=torch.bool), torch.zeros(val_len + test_len, dtype=torch.bool)])
     val_mask = torch.cat([torch.zeros(train_len, dtype=torch.bool), torch.ones(val_len, dtype=torch.bool),

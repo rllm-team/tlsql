@@ -42,9 +42,18 @@ def prepare_data_from_tlsql(predict_query, train_query, validate_query, db_confi
         validate_data = _load_data(executor, result.validate_result)
         test_data = _load_data(executor, result.predict_result)
 
+        # Get primary key from database
+        primary_keys = executor.get_primary_keys(result.predict_result.target_table)
+        target_pkey = primary_keys[0]
+
     test_df = list(test_data.values())[0]
     target_table, non_table_embeddings, adj = prepare_bridge_data(
-        train_data, validate_data, test_df, result.predict_result.target_column, device
+        train_data,
+        validate_data,
+        test_df,
+        result.predict_result.target_column,
+        target_pkey,
+        device,
     )
 
     return target_table, non_table_embeddings, adj, non_table_embeddings.size(1)
