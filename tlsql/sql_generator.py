@@ -21,7 +21,7 @@ from .ast_nodes import (
     BetweenExpr,
     InExpr,
 )
-from .exceptions import GenerationError
+from .exceptions import GenerationError, MULTI_TABLE_WHERE_UNSUPPORTED
 from .parser import Parser
 
 
@@ -375,6 +375,13 @@ class SQLGenerator:
 
         table_conditions = {}
         for cond in conditions:
+            # Reject multi-table predicates for now.
+            # Generator currently supports per-table filtering only.
+            tables_in_cond = self._extract_tables_from_expr(cond)
+            if len(tables_in_cond) > 1:
+                tables_str = ", ".join(sorted(tables_in_cond))
+                raise GenerationError(MULTI_TABLE_WHERE_UNSUPPORTED.format(tables=tables_str))
+
             table = self._extract_table_from_expr(cond)
             if table:
                 cond_str = self._expr_to_sql(cond, include_table_prefix=False)
@@ -387,6 +394,33 @@ class SQLGenerator:
             result[table] = ' AND '.join(conds)
 
         return result
+
+    def _extract_tables_from_expr(self, expr: Expr) -> set:
+        """Extract all table names referenced by an expression."""
+        tables = set()
+        if isinstance(expr, ColumnExpr):
+            if expr.column.table:
+                tables.add(expr.column.table)
+            return tables
+        if isinstance(expr, BinaryExpr):
+            tables |= self._extract_tables_from_expr(expr.left)
+            tables |= self._extract_tables_from_expr(expr.right)
+            return tables
+        if isinstance(expr, UnaryExpr):
+            return self._extract_tables_from_expr(expr.operand)
+        if isinstance(expr, BetweenExpr):
+            tables |= self._extract_tables_from_expr(expr.column)
+            tables |= self._extract_tables_from_expr(expr.lower)
+            tables |= self._extract_tables_from_expr(expr.upper)
+            return tables
+        if isinstance(expr, InExpr):
+            tables |= self._extract_tables_from_expr(expr.column)
+            for v in expr.values:
+                tables |= self._extract_tables_from_expr(v)
+            return tables
+        if isinstance(expr, LiteralExpr):
+            return tables
+        return tables
 
     def _extract_and_conditions(self, expr: Expr) -> List[Expr]:
         """Recursively extract AND-connected subconditions."""

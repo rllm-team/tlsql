@@ -1,9 +1,13 @@
 """Database executor that runs SQL statements and returns data"""
 
+import re
 import logging
 from typing import List, Dict, Optional
 from dataclasses import dataclass
 import pandas as pd
+
+# Identifier (table/schema name) must be alphanumeric or underscore only.
+_IDENTIFIER_PATTERN = re.compile(r"^[a-zA-Z0-9_]+$")
 
 
 try:
@@ -19,7 +23,6 @@ except ImportError:
     SQLALCHEMY_AVAILABLE = False
 
 
-# Configure logging
 logging.basicConfig(level=logging.ERROR)
 logger = logging.getLogger(__name__)
 
@@ -77,6 +80,12 @@ class DatabaseExecutor:
         self.engine = None  # SQLAlchemy engine
         self._validate_dependencies()
         logger.info(f"DatabaseExecutor initialized for {config.db_type}")
+
+    @staticmethod
+    def _validate_identifier(name: str) -> None:
+        """Raise ValueError if name is not a safe SQL identifier (alphanumeric and underscore)."""
+        if not name or not _IDENTIFIER_PATTERN.match(name):
+            raise ValueError(f"Invalid identifier: {name!r}. Use only letters, digits, and underscore.")
 
     def __enter__(self):
         """Context manager entry"""
@@ -198,10 +207,10 @@ class DatabaseExecutor:
         return results
 
     def get_table_info(self, table_name: str) -> pd.DataFrame:
-        """Get column info for a table"""
-
+        """Get column info for a table."""
+        self._validate_identifier(table_name)
         if self.config.db_type == 'mysql':
-            sql = f"DESCRIBE {table_name}"
+            sql = f"DESCRIBE `{table_name}`"
         else:
             raise ValueError(f"Unsupported database type: {self.config.db_type}")
 
@@ -225,41 +234,46 @@ class DatabaseExecutor:
             raise Exception(f"Failed to list tables: {result.error}")
 
     def get_primary_keys(self, table_name: str) -> List[str]:
-        """Retrieve primary keys for table"""
+        """Retrieve primary key column names for a table, in key order."""
+        self._validate_identifier(table_name)
+        self._validate_identifier(self.config.database)
         if self.config.db_type == 'mysql':
-            sql = f"""
+            sql = """
                 SELECT column_name
                 FROM information_schema.key_column_usage
-                WHERE table_schema = '{self.config.database}'
-                AND table_name = '{table_name}'
-                AND constraint_name = 'PRIMARY'
+                WHERE table_schema = %s AND table_name = %s AND constraint_name = 'PRIMARY'
+                ORDER BY ordinal_position
             """
+            result = self.execute(sql, params=(self.config.database, table_name))
         else:
             raise ValueError(f"Unsupported database type: {self.config.db_type}")
 
-        result = self.execute(sql)
         if not result.success:
             logger.warning(f"Failed to get primary keys for {table_name}: {result.error}")
             return []
-
+        if result.data is None or result.data.empty:
+            return []
         return result.data.iloc[:, 0].tolist()
 
     def get_foreign_keys(self, table_name: str) -> Dict[str, tuple]:
-        """Retrieve foreign keys"""
+        """Retrieve foreign keys for a table (column -> (referenced_table, referenced_column))."""
+        self._validate_identifier(table_name)
+        self._validate_identifier(self.config.database)
         if self.config.db_type == 'mysql':
-            sql = f"""
+            sql = """
                 SELECT column_name, referenced_table_name, referenced_column_name
                 FROM information_schema.key_column_usage
-                WHERE table_schema = '{self.config.database}'
-                AND table_name = '{table_name}'
-                AND referenced_table_name IS NOT NULL
+                WHERE table_schema = %s AND table_name = %s AND referenced_table_name IS NOT NULL
+                ORDER BY ordinal_position
             """
+            result = self.execute(sql, params=(self.config.database, table_name))
         else:
             raise ValueError(f"Unsupported database type: {self.config.db_type}")
 
-        result = self.execute(sql)
         if not result.success:
             logger.warning(f"Failed to get foreign keys for {table_name}: {result.error}")
+            return {}
+        if result.data is None or result.data.empty:
             return {}
 
         fk_dict = {}
@@ -280,15 +294,13 @@ class DatabaseExecutor:
         return fk_dict
 
     def get_table_schema(self, table_names: List[str]) -> Dict[str, Dict]:
-        """Get schema info for multiple tables"""
+        """Get schema info for multiple tables."""
         schema = {}
         for table_name in table_names:
+            columns = []
             table_info = self.get_table_info(table_name)
-            if table_info is not None and not table_info.empty:
-                if self.config.db_type == 'mysql':
-                    columns = table_info['Field'].tolist()
-            else:
-                columns = []
+            if table_info is not None and not table_info.empty and self.config.db_type == 'mysql':
+                columns = table_info['Field'].tolist()
 
             primary_keys = self.get_primary_keys(table_name)
             foreign_keys = self.get_foreign_keys(table_name)

@@ -38,3 +38,11 @@ class GenerationError(TLSQLError):
     """Error thrown during SQL generation."""
 
     pass
+
+
+# Error messages for SQL generation
+MULTI_TABLE_WHERE_UNSUPPORTED = (
+    "Multi-table WHERE predicates are not supported yet. "
+    "Found predicate referencing multiple tables: {tables}. "
+    "Please remove JOIN conditions such as `a.id = b.id` from WHERE."
+)
