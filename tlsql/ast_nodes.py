@@ -103,6 +103,13 @@ class UnaryExpr(Expr):
 
 
 @dataclass
+class ParenthesizedExpr(Expr):
+    """Expression explicitly wrapped in parentheses."""
+
+    expr: Expr
+
+
+@dataclass
 class BetweenExpr(Expr):
     """BETWEEN expression.
 

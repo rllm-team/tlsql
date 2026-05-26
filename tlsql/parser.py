@@ -27,6 +27,7 @@ from .ast_nodes import (
     ColumnExpr,
     BinaryExpr,
     UnaryExpr,
+    ParenthesizedExpr,
     BetweenExpr,
     InExpr,
 )
@@ -470,7 +471,7 @@ class Parser:
             self.advance()
             expr = self.parse_where_expression()
             self.expect(TokenType.RPAREN)
-            return expr
+            return ParenthesizedExpr(expr=expr)
 
         if self.match(TokenType.NUMBER):
             token = self.current_token

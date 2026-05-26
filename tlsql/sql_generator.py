@@ -16,6 +16,7 @@ from .ast_nodes import (
     Expr,
     BinaryExpr,
     UnaryExpr,
+    ParenthesizedExpr,
     LiteralExpr,
     ColumnExpr,
     BetweenExpr,
@@ -330,14 +331,15 @@ class SQLGenerator:
         """Generate SQL statements for TRAIN."""
         table_columns = self._group_columns_by_table(train.with_clause.selectors)
 
-        table_conditions = {}
+        table_conditions: Dict[str, List[Expr]] = {}
         if train.where:
             table_conditions = self._split_where_by_table(train.where)
 
         result = []
         for table in train.tables.tables:
             columns = table_columns.get(table, [])
-            condition = table_conditions.get(table, None)
+            condition_exprs = table_conditions.get(table, [])
+            condition = self._combine_conditions(condition_exprs)
 
             sql = self._build_select_sql(table, columns, condition)
             result.append(GeneratedSQL(
@@ -366,17 +368,15 @@ class SQLGenerator:
             table_columns[selector.table].append(selector.column)
         return table_columns
 
-    def _split_where_by_table(self, where: WhereClause) -> Dict[str, str]:
+    def _split_where_by_table(self, where: WhereClause) -> Dict[str, List[Expr]]:
         """Split WHERE conditions per table.
         Splits WHERE clause conditions into table-specific conditions by extracting
         AND-connected subconditions and grouping them by table.
         """
         conditions = self._extract_and_conditions(where.condition)
 
-        table_conditions = {}
+        table_conditions: Dict[str, List[Expr]] = {}
         for cond in conditions:
-            # Reject multi-table predicates for now.
-            # Generator currently supports per-table filtering only.
             tables_in_cond = self._extract_tables_from_expr(cond)
             if len(tables_in_cond) > 1:
                 tables_str = ", ".join(sorted(tables_in_cond))
@@ -384,16 +384,25 @@ class SQLGenerator:
 
             table = self._extract_table_from_expr(cond)
             if table:
-                cond_str = self._expr_to_sql(cond, include_table_prefix=False)
-                if table not in table_conditions:
-                    table_conditions[table] = []
-                table_conditions[table].append(cond_str)
+                table_conditions.setdefault(table, []).append(cond)
 
-        result = {}
-        for table, conds in table_conditions.items():
-            result[table] = ' AND '.join(conds)
+        return table_conditions
 
-        return result
+    def _combine_conditions(self, conditions: List[Expr]) -> Optional[str]:
+        if not conditions:
+            return None
+        if len(conditions) == 1:
+            return self._expr_to_sql(conditions[0], include_table_prefix=False)
+        parts = []
+        for cond in conditions:
+            cond_sql = self._expr_to_sql(cond, include_table_prefix=False)
+            if self._needs_parentheses(cond):
+                cond_sql = f"({cond_sql})"
+            parts.append(cond_sql)
+        return ' AND '.join(parts)
+
+    def _needs_parentheses(self, expr: Expr) -> bool:
+        return isinstance(expr, BinaryExpr) and expr.operator.upper() == 'OR'
 
     def _extract_tables_from_expr(self, expr: Expr) -> set:
         """Extract all table names referenced by an expression."""
@@ -402,6 +411,8 @@ class SQLGenerator:
             if expr.column.table:
                 tables.add(expr.column.table)
             return tables
+        if isinstance(expr, ParenthesizedExpr):
+            return self._extract_tables_from_expr(expr.expr)
         if isinstance(expr, BinaryExpr):
             tables |= self._extract_tables_from_expr(expr.left)
             tables |= self._extract_tables_from_expr(expr.right)
@@ -423,18 +434,25 @@ class SQLGenerator:
         return tables
 
     def _extract_and_conditions(self, expr: Expr) -> List[Expr]:
-        """Recursively extract AND-connected subconditions."""
+        """Recursively extract top-level AND-separated subconditions.
+
+        ParenthesizedExpr is treated as a boundary, so AND inside parentheses
+        stays inside the subcondition.
+        """
+        if isinstance(expr, ParenthesizedExpr):
+            return [expr]
         if isinstance(expr, BinaryExpr) and expr.operator.upper() == 'AND':
             left_conds = self._extract_and_conditions(expr.left)
             right_conds = self._extract_and_conditions(expr.right)
             return left_conds + right_conds
-        else:
-            return [expr]
+        return [expr]
 
     def _extract_table_from_expr(self, expr: Expr) -> Optional[str]:
         """Extract table name from expression."""
         if isinstance(expr, ColumnExpr):
             return expr.column.table
+        if isinstance(expr, ParenthesizedExpr):
+            return self._extract_table_from_expr(expr.expr)
         elif isinstance(expr, BinaryExpr):
             left_table = self._extract_table_from_expr(expr.left)
             if left_table:
@@ -499,6 +517,9 @@ class SQLGenerator:
                 return f"'{expr.value}'"
             return str(expr.value)
 
+        elif isinstance(expr, ParenthesizedExpr):
+            return f"({self._expr_to_sql(expr.expr, include_table_prefix)})"
+
         elif isinstance(expr, ColumnExpr):
             if include_table_prefix and expr.column.table:
                 return f"{expr.column.table}.{expr.column.column}"
@@ -513,7 +534,7 @@ class SQLGenerator:
                 op = '='
             elif op == 'EQ' or op == '==':
                 op = '='
-            elif op == 'NEQ' or op == '!=':
+            elif op == 'NEQ' or op == '!=' or op == '<>':
                 op = '!='
             elif op in ['GT', 'LT', 'GTE', 'LTE']:
                 op_map = {'GT': '>', 'LT': '<', 'GTE': '>=', 'LTE': '<='}
