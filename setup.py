@@ -19,7 +19,7 @@ setup(
     long_description_content_type="text/markdown",
     author="TLSQL Team",
     author_email="",
-    url="https://github.com/rllm-team/tlsql",
+    url="https://github.com/tlsql-project/tlsql",
     license="MIT",
     packages=["tlsql", "tlsql.tlsql"],
     package_dir={
